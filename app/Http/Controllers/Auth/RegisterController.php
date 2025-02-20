@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-
+use App\Models\Mountain;
 class RegisterController extends Controller
 {
     /*
@@ -46,12 +46,22 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
+
+public function showRegistrationForm()
+{
+    $mountains = Mountain::all(); 
+    return view('auth.register', compact('mountains'));
+}
     protected function validator(array $data)
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'mountains' => ['nullable', 'array'], // Validate as an array
+            'mountains.*' => ['exists:mountains,id'], // Ensure each selected value exists in the mountains table
         ]);
     }
 
@@ -66,16 +76,25 @@ class RegisterController extends Controller
         $imagePath = null;
 
         if (isset($data['image'])) {
-            $imagePath = $data['image']->store('profiles', 'public'); // Store image in "storage/app/public/profiles"
+            $imagePath = $data['image']->store('profiles', 'public');
         }
 
-        return User::create([
+        // Create the user
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'description' => $data['description'],
+            'description' => $data['description'] ?? null,
             'image' => $imagePath,
         ]);
+
+        // Attach mountains to the user (store in pivot table)
+        if (isset($data['mountains'])) {
+            $user->mountains()->attach($data['mountains']);
+        }
+
+        return $user;
     }
+
 
 }

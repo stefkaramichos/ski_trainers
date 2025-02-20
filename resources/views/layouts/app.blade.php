@@ -8,6 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -18,6 +19,34 @@
 </head>
 <body>
     <div id="app">
+       
+        @if(Auth::check())
+            @if (Auth::user()->super_admin === 'Y')
+                <div class="super-admin">
+                    <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
+                        <div class="container">
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+                                data-bs-target="#adminNavbar" aria-controls="adminNavbar" 
+                                aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                
+                            <div class="collapse navbar-collapse" id="adminNavbar">
+                                <ul class="navbar-nav me-auto">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('admin.trainers') }}">Προπονητές</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="">Χιονοδρομικά</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            @endif
+        @endif
+        
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
@@ -55,11 +84,14 @@
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('profile', Auth::user()->id) }}">
+                                        {{ __('auth.my_profile') }}
+                                    </a>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
                                         {{ __('Logout') }}
-                                    </a>
+                                    </a> 
 
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                         @csrf
@@ -72,9 +104,10 @@
             </div>
         </nav>
 
-        <main class="py-4">
+        <main class="">
             @yield('content')
         </main>
     </div>
+ 
 </body>
 </html>
