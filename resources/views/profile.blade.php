@@ -3,11 +3,13 @@
 @section('content')
 <div class="main-form">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
+        <div class="row ">
+            @include('includes.profile-header')
+            @include('includes.admin-edit-menu')
+            <div class="mb-3">
                 <div class="card">
                     <div class="card-header">
-                        @include('includes.profile-header')
+                        Στοιχεία Λογαριασμού
                     </div>
 
                     <div class="card-body">   

@@ -49,6 +49,13 @@
                             </div>
                         </div>
                     </div>
+                    @if (Auth::check() && (Auth::user()->id === $user->id  || Auth::user()->super_admin === 'Y'))
+                        <div class="edit-ptofile p-3">
+                            <a href=" {{ route('profile', $user->id) }} ">
+                                <i title="Επεξεργαρία προφίλ" class="fa fa-edit" style="font-size:24px"></i>
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

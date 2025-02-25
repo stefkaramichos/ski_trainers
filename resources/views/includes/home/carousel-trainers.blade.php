@@ -17,7 +17,7 @@
                                     @endif
                                     <div class="card-body">
                                         <h5 class="card-title trainer-name mt-3">
-                                            <a href="{{ route('profile', $user->id) }}">{{ $user->name }}</a>
+                                            <a href="{{ route('profile.view', $user->id) }}">{{ $user->name }}</a>
                                         </h5>
                                         <p class="card-text">
                                             <img width="15" src="{{ asset('storage/skier.png') }}" alt="ski icon">&nbsp; 

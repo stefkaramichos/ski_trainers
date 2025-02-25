@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row mb-4">
     @if ($user->image)
         <div class="img-profile">
             <img src="{{ asset('storage/' . $user->image) }}" alt="Profile Image" >

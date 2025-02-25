@@ -17,3 +17,8 @@ Route::any('/profile/{user}', [App\Http\Controllers\ProfilesController::class, '
 Route::any('/admin_trainers', [App\Http\Controllers\AdminTrainersController::class, 'admin_trainers'])->name('admin.trainers');
 Route::post('/update-user-status', [AdminTrainersController::class, 'updateStatus'])->name('updateUserStatus');
 Route::post('/delete-user', [AdminTrainersController::class, 'deleteUser'])->name('deleteUser');
+Route::get('/profile/{user}/date', [ProfilesController::class, 'profile_date'])->name('profile.date');
+Route::post('/profile/{user}/date', [ProfilesController::class, 'profile_date']);
+Route::any('/profile_programm/{user}', [App\Http\Controllers\ProfilesController::class, 'profile_programm'])->name('profile.programm');
+Route::any('/profile_guest_view/{user}', [App\Http\Controllers\ProfilesController::class, 'profile_view'])->name('profile.view');
+Route::any('/profile/{user}/submit-datetimes', [ProfilesController::class, 'submitSelectedDatetimes'])->name('submit.selected.datetimes');

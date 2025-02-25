@@ -167,6 +167,9 @@ body {
                 color: rgb(39, 39, 39);
             }
         }
+        a:hover{
+            color: #545454;
+        }
     }
 }
 .pop-up-new-trainer{
@@ -198,4 +201,90 @@ body {
     padding: 3px 10px;
     cursor: pointer;
     z-index: 100;
+}
+.session-dates{
+    border: 1px solid gray;
+}
+.edit-ptofile{
+    text-align: right;
+
+    i{
+        cursor: pointer;
+    }
+}
+.admin-edit-menu{
+
+    ul{
+
+        li{
+            display: inline;
+
+            a{
+                text-decoration: none;
+                color: #222;
+            }
+        }
+    }
+}
+
+.admin-edit-menu ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+  /* Light bottom border for the whole menu */
+}
+
+.admin-edit-menu li {
+    padding: 10px 20px;
+    border-bottom: 2px solid #ccc; /* Default bottom border */
+    transition: all 0.3s ease-in-out; /* Smooth transition effect */
+    border-radius: 8px 8px 0 0; /* Rounded corners on top */
+}
+
+.admin-edit-menu li a {
+    padding: 10px 0px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: color 0.3s ease-in-out;
+}
+
+.admin-edit-menu li:hover {
+    background: rgba(0, 0, 0, 0.05); /* Light hover effect */
+}
+
+.admin-edit-menu li.active {
+    border: 2px solid #ccc;
+    border-bottom: none; /* Remove bottom border for active item */
+    font-weight: bold;
+    background: white; /* Keep active tab white */
+}
+
+.admin-edit-menu li.active a {
+    color: black; /* Darker color for active link */
+    font-weight:600;
+}
+.availability {
+
+    .card-header{
+        background-color: #21252a !important;
+        color: #fff !important;
+    }
+
+    .btn-link{
+        width: 31%;
+        background: #fed634;
+        border-radius: 54%;
+        padding: 10px !important;
+        text-decoration: none;
+        color: white;
+    }
+
+    .btn-link:hover{
+        background: #21252a;
+    }
+
+    .selected-date{
+        background-color: #ebebeb !important;
+    }
 }
