@@ -272,7 +272,7 @@ body {
     }
 
     .btn-link{
-        width: 31%;
+        width: 44px;
         background: #fed634;
         border-radius: 54%;
         padding: 10px !important;
@@ -286,5 +286,27 @@ body {
 
     .selected-date{
         background-color: #ebebeb !important;
+    }
+}
+
+.currenet-day{
+    background-color: #e5e5e5 !important;
+}  
+.last-clicked{
+    background-color: #21252a !important;
+}
+.selected-date-for-submit:hover{
+    background-color: #ececec;
+}
+.delete-selected-dates{
+    background-color: #472326 !important;
+    border: red 1px solid;
+    position: relative;
+    top: 8px;
+}
+.delete-selected-dates:hover{
+    background-color: #fff !important;
+    i{
+        color:red
     }
 }

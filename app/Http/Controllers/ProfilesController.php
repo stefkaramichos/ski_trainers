@@ -33,6 +33,10 @@ class ProfilesController extends Controller
                 $selectedDate = $request->input('selected_date');
                 $selectedTime = $request->input('selected_time');
 
+                if ($selectedDate) {
+                    Session::put('last_selected_date', $selectedDate);
+                }
+
                 if ($selectedDate && $selectedTime) {
                     // Initialize the session array if it doesn't exist
                     if (!Session::has('selected_datetimes')) {
@@ -100,7 +104,7 @@ class ProfilesController extends Controller
         } else {
             abort(403, 'Unauthorized access');
         }
-}
+    }
 
     // Function to build the calendar
     private function build_calendar($month, $year)
@@ -139,21 +143,30 @@ class ProfilesController extends Controller
         if ($dayOfWeek > 0) {
             $calendar .= str_repeat("<td></td>", $dayOfWeek);
         }
+        
         $currentDay = 1;
         while ($currentDay <= $numberDays) {
             if ($dayOfWeek == 7) {
                 $dayOfWeek = 0;
                 $calendar .= "</tr><tr>";
             }
-            $todayClass = ($currentDay == date('j') && $month == date('n') && $year == date('Y')) ? 'table-warning' : '';
-            $selectedDate = "$year-$month-$currentDay";
+            $todayClass = ($currentDay == date('j') && $month == date('n') && $year == date('Y')) ? 'currenet-day' : '';
+            $selectedDate = "$currentDay-$month-$year";
             $isSelected = in_array($selectedDate, Session::get('selected_datetimes.dates', []));
+            $lastSelectedDate = Session::get('last_selected_date');
+            $selectedDates = Session::get('selected_datetimes.dates', []);
+            $selectedTimes = Session::get('selected_datetimes.times', []);
             $selectedClass = $isSelected ? 'bg-info selected-date text-white' : '';
-            $calendar .= "<td class='text-center $todayClass $selectedClass'>";
+
+            $calendar .= "<td class='text-center $todayClass '>";
+
+            $lastSelectedClass = ($selectedDate === $lastSelectedDate && !in_array($selectedDate, $selectedTimes)) ? 'last-clicked' : '';
+
             $calendar .= "<form method='POST' class='d-inline'>";
             $calendar .= csrf_field(); // Add CSRF token
-            $calendar .= "<button type='submit' name='selected_date' value='$selectedDate' class='btn btn-link p-0'>$currentDay</button>";
+            $calendar .= "<button type='submit' name='selected_date' value='$selectedDate' class='btn btn-link p-0 $lastSelectedClass'>$currentDay</button>";
             $calendar .= "</form>";
+
             $calendar .= "</td>";
             $currentDay++;
             $dayOfWeek++;
@@ -167,6 +180,7 @@ class ProfilesController extends Controller
         $calendar .= "</table>";
         $calendar .= "</div>";
         $calendar .= "</div>";
+       
         return $calendar;
     }
 
@@ -175,23 +189,30 @@ class ProfilesController extends Controller
         // Validate the request
         $request->validate([
             'selected_datetimes' => 'required|array',
-            'selected_datetimes.*.date' => 'required|date',
+            'selected_datetimes.*.date' => 'required|string', // Accepts string since we'll convert it
             'selected_datetimes.*.time' => 'required|date_format:H:i',
         ]);
 
-        // Save each selected date-time combination to the database
         foreach ($request->selected_datetimes as $datetime) {
-            UserSelectedDatetime::create([
-                'user_id' => $user->id,
-                'selected_date' => $datetime['date'],
-                'selected_time' => $datetime['time'],
-            ]);
+            try {
+                // Convert date format from 'd-m-Y' to 'Y-m-d'
+                $formattedDate = \Carbon\Carbon::createFromFormat('d-m-Y', $datetime['date'])->format('Y-m-d');
+
+                UserSelectedDatetime::create([
+                    'user_id' => $user->id,
+                    'selected_date' => $formattedDate, // Store correct format
+                    'selected_time' => $datetime['time'],
+                ]);
+            } catch (\Exception $e) {
+                \Log::error("Invalid date format: " . $datetime['date']);
+                return redirect()->back()->withErrors(['selected_datetimes' => 'Invalid date format provided.']);
+            }
         }
 
         // Clear the session data
         Session::forget('selected_datetimes');
+        Session::forget('last_selected_date');
 
-        // Redirect back with a success message
         return redirect()->back()->with('success', 'Selected date-times saved successfully!');
     }
 
@@ -308,5 +329,30 @@ class ProfilesController extends Controller
         } else{
             return redirect()->route('home');
         }   
-}
+    }
+
+    public function deleteDateTime(Request $request)
+    {
+        $index = $request->input('delete_index');
+
+        // Get the current session values
+        $selectedDatetimes = Session::get('selected_datetimes', [
+            'dates' => [],
+            'times' => []
+        ]);
+
+        // Ensure the index exists
+        if (isset($selectedDatetimes['dates'][$index]) && isset($selectedDatetimes['times'][$index])) {
+            // Remove the selected index from both arrays
+            array_splice($selectedDatetimes['dates'], $index, 1);
+            array_splice($selectedDatetimes['times'], $index, 1);
+
+            // Update the session
+            Session::put('selected_datetimes', $selectedDatetimes);
+        }
+
+        // Redirect back
+        return redirect()->back();
+    }
+
 }
