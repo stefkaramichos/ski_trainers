@@ -3,59 +3,53 @@
 @section('content')
 <div class="main-form">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
+        <div class="row ">
+            @include('includes.profile-header')
+            @if ($accessLevel == 'A')
+                @include('includes.admin-edit-menu')
+            @endif
+            
+            <div class="mb-3">
+                <div class="card profile profile-{{ $user->id }}">
                     <div class="card-header">
-                    @include('includes.profile-header')
+                        ΠΡΟΦΙΛ
                     </div>
 
-                    <div class="card-body">   
-                        <div>
-                            <div class="row mb-3">
-                                <label for="name" class="col-md-4 col-form-label text-md-end">{{ __('auth.name') }}</label>
-                        
-                                <div class="col-md-6">
-                                    {{ $user->name }}
+                    <div class="card-body profile-wrapper"> 
+                        <div class="profile-inner row">
+                            <div class="profile-image col-12 col-md-4">
+                                <img src="{{ asset('storage/' . $user->image) }}" alt="Profile Image" >
+                            </div> 
+
+                            <div class="profile-info col-12 col-md-4">
+                                <div class="profile-desc d-flex justify-content-center align-items-center">
+                                    <div class="col-4">
+                                        <img width="40" src="{{ asset('storage/skier.png') }}" alt="ski-center">
+                                    </div>
+                                    <div class="col-8">
+                                        <span> {{ $user->description }} </span>
+                                    </div>
                                 </div>
-                            </div>
-                        
-                            <div class="row mb-3">
-                                <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('auth.Email_Address') }}</label>
-                        
-                                <div class="col-md-6">
-                                    <input id="email" value="{{ $user->email }}"  type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
-                        
-                                    @error('email')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
+                                <hr>
+                                <div class="profile-mountain d-flex justify-content-center align-items-center">
+                                    <div class="col-4">
+                                        <img width="50" src="{{ asset('storage/ski-center.png') }}" alt="ski-center">
+                                    </div>
+                                    <div class="col-8">
+                                        @foreach ($user->mountains as $m)
+                                            <span>{{$m->mountain_name}}</span>
+                                        @endforeach
+                                    </div>
                                 </div>
+                                <hr>
+                                
                             </div>
-                        
-                            <div class="row mb-3">
-                                <label for="description" class="col-md-4 col-form-label text-md-end">{{ __('auth.description') }}</label>
-                            
-                                <div class="col-md-6">
-                                    <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description" required>{{ $user->description }}</textarea>
-                            
-                                    @error('description')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
+
+                            <div class="profile-image col-12 col-md-4">
+                                asdasd ascascascasc sveqv d vvwec asdasd ascascascasc sveqv d vvwecasdasd ascascascasc sveqv d vvwecasdasd ascascascasc sveqv d vvwecasdasd ascascascasc sveqv d vvwecasdasd ascascascasc sveqv d vvwecasdasd ascascascasc sveqv d vvwecasdasd ascascascasc sveqv d vvwecasdasd ascascascasc sveqv d vvwecasdasd ascascascasc sveqv d vvwec
+                            </div> 
+                        </div> 
                     </div>
-                    @if (Auth::check() && (Auth::user()->id === $user->id  || Auth::user()->super_admin === 'Y'))
-                        <div class="edit-ptofile p-3">
-                            <a href=" {{ route('profile', $user->id) }} ">
-                                <i title="Επεξεργαρία προφίλ" class="fa fa-edit" style="font-size:24px"></i>
-                            </a>
-                        </div>
-                    @endif
                 </div>
             </div>
         </div>

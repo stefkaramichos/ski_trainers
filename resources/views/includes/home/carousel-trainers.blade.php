@@ -19,18 +19,18 @@
                                         <h5 class="card-title trainer-name mt-3">
                                             <a href="{{ route('profile.view', $user->id) }}">{{ $user->name }}</a>
                                         </h5>
-                                        <p class="card-text">
-                                            <img width="15" src="{{ asset('storage/skier.png') }}" alt="ski icon">&nbsp; 
+                                        <p class="card-text mt-4">
+                                            <img width="27" src="{{ asset('storage/skier.png') }}" alt="ski icon">&nbsp; 
                                             {{ $user->description }}
-                                        </p>
-                                    </div>
-                                    <ul class="list-group list-group-flush">
+                                        </p><hr>
+                                        
                                         @foreach ($user->mountains as $mountain)
-                                            <li class="list-group-item">
-                                                <img width="15" class="img-ski-location" src="{{ asset('storage/location.jpg') }}" alt="ski location">&nbsp;{{ $mountain->mountain_name }}
-                                            </li>
+                                            <p class="card-text">
+                                                <img width="35" class="img-ski-location" src="{{ asset('storage/ski-center.png') }}" alt="ski location">&nbsp;{{ $mountain->mountain_name }}
+                                            </p>
                                         @endforeach
-                                    </ul>
+                                        
+                                    </div>
                                     <div class="card-body">
                                         <a href="#" class="card-link">Card link</a>
                                         <a href="#" class="card-link">Another link</a>

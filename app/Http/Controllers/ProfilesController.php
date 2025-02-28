@@ -19,7 +19,13 @@ class ProfilesController extends Controller
     }
 
     public function profile_view(User $user){
-        return view('profile-guest-view', ['user' => $user]);
+
+        $accessLevel = $this->checkUserAccess($user);
+
+        return view('profile-guest-view', [
+            'user' => $user,
+            'accessLevel' => $accessLevel
+        ]);
     }
 
     public function profile_date(User $user, Request $request)
@@ -27,7 +33,10 @@ class ProfilesController extends Controller
         // Check user access level
         $accessLevel = $this->checkUserAccess($user);
 
-        if ($accessLevel == 'admin access') {
+        $mountains = Mountain::all(); 
+        $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
+
+        if ($accessLevel == 'A') {
             // Handle form submission for date and time selection
             if ($request->isMethod('post')) {
                 $selectedDate = $request->input('selected_date');
@@ -97,9 +106,16 @@ class ProfilesController extends Controller
                 'timeSelection' => $timeSelection,
                 'selectedDatetimes' => $selectedDatetimes
             ]);
-        } elseif ($accessLevel == 'user access') {
-            return view('profile-guest-view', ['user' => $user]);
-        } elseif ($accessLevel == 'no access') {
+        } elseif ($accessLevel == 'U') {
+            $accessLevel = $this->checkUserAccess($user);
+
+            return view('profile-guest-view', [
+                'user' => $user,
+                'mountains' => $mountains,
+                'userMountains' => $userMountains,
+                'accessLevel' => $accessLevel
+            ]);
+        } elseif ($accessLevel == 'N') {
             return redirect()->route('home');
         } else {
             abort(403, 'Unauthorized access');
@@ -179,7 +195,7 @@ class ProfilesController extends Controller
         $calendar .= "</tbody>";
         $calendar .= "</table>";
         $calendar .= "</div>";
-        $calendar .= "</div>";
+        //$calendar .= "</div>";
        
         return $calendar;
     }
@@ -195,8 +211,14 @@ class ProfilesController extends Controller
 
         foreach ($request->selected_datetimes as $datetime) {
             try {
-                // Convert date format from 'd-m-Y' to 'Y-m-d'
-                $formattedDate = \Carbon\Carbon::createFromFormat('d-m-Y', $datetime['date'])->format('Y-m-d');
+                // Check if the date is in 'Y-m-d' format (e.g. 2025-02-28)
+                if (\Carbon\Carbon::hasFormat($datetime['date'], 'Y-m-d')) {
+                    // If it's already in 'Y-m-d' format, just use it directly
+                    $formattedDate = $datetime['date'];
+                } else {
+                    // Otherwise, try to convert it from 'd-m-Y'
+                    $formattedDate = \Carbon\Carbon::createFromFormat('d-m-Y', $datetime['date'])->format('Y-m-d');
+                }
 
                 UserSelectedDatetime::create([
                     'user_id' => $user->id,
@@ -216,46 +238,86 @@ class ProfilesController extends Controller
         return redirect()->back()->with('success', 'Selected date-times saved successfully!');
     }
 
-    // Function to build the time selection
+
     private function build_time_selection()
     {
         $times = [];
         for ($i = 9; $i <= 15; $i++) {
             $times[] = sprintf("%02d:00", $i);
         }
-        $timeSelection = "<div class='card mt-4'>";
-        $timeSelection .= "<div class='card-header bg-light text-dark text-center'>";
-        $timeSelection .= "<h3>Επιλέξτε Ώρα</h3>";
-        $timeSelection .= "</div>";
-        $timeSelection .= "<div class='card-body'>";
-        $timeSelection .= "<form method='POST'>";
+    
+      
+        $timeSelection  = "<form method='POST'>";
         $timeSelection .= csrf_field(); // Add CSRF token
-        $timeSelection .= "<input type='hidden' name='selected_date' value='" . (request('selected_date') ?? '') . "'>";
+    
+        // Get and clean selected date
+        $selectedDate = request('selected_date') ?? '';
+        $selectedDate = trim($selectedDate); // Remove extra spaces
+    
+        // Convert format only if needed
+        if (!empty($selectedDate) && preg_match('/^\d{1,2}-\d{1,2}-\d{4}$/', $selectedDate)) {
+            try {
+                $selectedDate = \Carbon\Carbon::createFromFormat('d-m-Y', $selectedDate)->format('Y-m-d');
+            } catch (\Exception $e) {
+                $selectedDate = ''; // Reset if conversion fails
+            }
+        }
+    
+        $timeSelection .= "<input type='hidden' name='selected_date' value='$selectedDate'>";
         $timeSelection .= "<div class='d-flex flex-wrap justify-content-center'>";
+    
+        // Fetch selected times from database
+        $existingTimes = $selectedDate ? \App\Models\UserSelectedDatetime::where('selected_date', $selectedDate)->pluck('selected_time')->toArray() : [];
+   
         foreach ($times as $time) {
-            $isDisabled = in_array((request('selected_date') ?? '') . ' ' . $time, array_map(function ($date, $time) {
-                return $date . ' ' . $time;
-            }, Session::get('selected_datetimes.dates', []), Session::get('selected_datetimes.times', [])));
-            $disabledClass = $isDisabled ? 'disabled' : '';
+            // Check if the time is already selected in session
+            $isDisabledInSession = false;
+            $sessionDates = Session::get('selected_datetimes.dates', []);
+            $sessionTimes = Session::get('selected_datetimes.times', []);
+    
+            if (!empty($sessionDates) && !empty($sessionTimes)) {
+                $formattedSessionDates = array_map(function ($date) {
+                    return preg_match('/^\d{1,2}-\d{1,2}-\d{4}$/', $date) 
+                        ? \Carbon\Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') 
+                        : $date;
+                }, $sessionDates);
+    
+                $isDisabledInSession = in_array("$selectedDate $time", array_map(null, $formattedSessionDates, $sessionTimes));
+            }
+    
+            // Check if the time exists in the database
+            $isDisabledInDB = in_array("$time:00", $existingTimes);
+            $disabledClass = ($isDisabledInSession || $isDisabledInDB) ? 'disabled' : '';
+    
             $timeSelection .= "<button type='submit' name='selected_time' value='$time' class='btn btn-outline-primary m-2 $disabledClass' $disabledClass>$time</button>";
         }
+    
         $timeSelection .= "</div>";
         $timeSelection .= "</form>";
-        $timeSelection .= "</div>";
-        $timeSelection .= "</div>";
+       
+    
         return $timeSelection;
     }
+    
 
 
     public function profile_programm(User $user){
 
         $accessLevel = $this->checkUserAccess($user);
 
-        if ( $accessLevel == 'admin access'){
+        // Fetch all mountains from the database
+        $mountains = Mountain::all(); 
+        $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
+
+        if ( $accessLevel == 'A'){
             return view('profile-date', ['user' => $user]);
-        }elseif ( $accessLevel == 'user access'){
-            return view('profile-guest-view', ['user' => $user]);
-        }elseif ( $accessLevel == 'no access'){
+        }elseif ( $accessLevel == 'U'){
+            return view('profile-guest-view', [
+                'user' => $user,
+                'mountains' => $mountains,
+                'userMountains' => $userMountains
+            ]);
+        }elseif ( $accessLevel == 'N'){
             return redirect()->route('home');
         }else{
             abort(403, 'Unauthorized access');
@@ -266,17 +328,21 @@ class ProfilesController extends Controller
     {
         if ($user->status === 'A' || (Auth::check() && Auth::user()->super_admin === "Y")) {
             if (Auth::check() && (Auth::user()->id === $user->id || Auth::user()->super_admin === "Y")) {
-                return "admin access";
+                return "A";
             } else {
-                return "user access";
+                return "U";
             }
         } else {
-            return "no access";
+            return "N";
         }
     }
 
     public function profile(User $user, Request $request)
     {
+        // Fetch all mountains from the database
+        $mountains = Mountain::all(); 
+        $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
+
         if($user->status === 'A' || (Auth::check() && Auth::user()->super_admin === "Y")){
             if ( Auth::check() && (Auth::user()->id === $user->id  || Auth::user()->super_admin === "Y")  ) {
                 if ($request->isMethod('post')) { 
@@ -313,10 +379,7 @@ class ProfilesController extends Controller
                                     ->with('success', 'Profile updated successfully!');
                 }
 
-                // Fetch all mountains from the database
-                $mountains = Mountain::all(); 
-                // Get mountains already associated with the user
-                $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
+                
 
                 return view('profile', [
                     'user' => $user,
@@ -324,7 +387,14 @@ class ProfilesController extends Controller
                     'userMountains' => $userMountains
                 ]);
             } else {
-                return view('profile-guest-view', ['user' => $user]);
+                $accessLevel = $this->checkUserAccess($user);
+
+                return view('profile-guest-view', [
+                    'user' => $user,
+                    'mountains' => $mountains,
+                    'userMountains' => $userMountains,
+                    'accessLevel' => $accessLevel
+                ]);
             }
         } else{
             return redirect()->route('home');

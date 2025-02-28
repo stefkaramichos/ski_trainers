@@ -19,7 +19,7 @@
         <label for="mountains" class="col-md-4 col-form-label text-md-end">{{ __('auth.mountains') }}</label>
     
         <div class="col-md-6">
-            <select id="mountains" class="form-control @error('mountains') is-invalid @enderror" name="mountains[]" multiple>
+            <select id="mountains" class="form-control @error('mountains') is-invalid @enderror" name="mountains[]" >
                 @foreach ($mountains as $mountain)
                     <option value="{{ $mountain->id }}" {{ in_array($mountain->id, $userMountains) ? 'selected' : '' }}>
                         {{ $mountain->mountain_name }}

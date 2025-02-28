@@ -222,6 +222,7 @@ body {
             a{
                 text-decoration: none;
                 color: #222;
+                font-size: 19px;
             }
         }
     }
@@ -235,14 +236,14 @@ body {
 }
 
 .admin-edit-menu li {
-    padding: 10px 20px;
     border-bottom: 2px solid #ccc; /* Default bottom border */
     transition: all 0.3s ease-in-out; /* Smooth transition effect */
     border-radius: 8px 8px 0 0; /* Rounded corners on top */
 }
 
 .admin-edit-menu li a {
-    padding: 10px 0px;
+    padding: 14px 35px;
+    display: block;
     text-decoration: none;
     color: #333;
     font-weight: 500;
@@ -306,5 +307,28 @@ body {
     background-color: #fff !important;
     i{
         color:red
+    }
+}
+.day-col{
+    width: 14.2% !important;
+}
+
+.profile-wrapper{
+
+    .profile-inner{
+
+        .profile-image{
+
+            img{
+                width: 100%;
+            }
+        }
+
+        .profile-info{
+
+            span{
+                font-size:18px !important;
+            }
+        }
     }
 }

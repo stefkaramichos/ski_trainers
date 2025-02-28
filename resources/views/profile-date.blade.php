@@ -16,10 +16,7 @@
                             {!! $calendar !!}
                             {!! $timeSelection !!}
                             @if (!empty($selectedDatetimes['dates']))
-                                <div class="card mt-4">
-                                    <div class="card-header bg-light text-dark text-center">
-                                        <h3>Επιλεγμένες Ημερομηνίες και Ώρες</h3>
-                                    </div>
+                               
                                     <div class="card-body">
                                         <ul class="list-group">
                                             @for ($i = 0; $i < count($selectedDatetimes['dates']); $i++)
@@ -44,8 +41,9 @@
                                             <button type="submit" title="Καταχώρηση ημερομηνιών στο πρόγραμμά μου" class="btn btn-success">Υποβολή Επιλεγμένων Ημερομηνιών και Ωρών</button>
                                         </form>
                                     </div>
-                                </div>
+                                
                             @endif
+                            </div>
                         </div>
                     
                     </div>
