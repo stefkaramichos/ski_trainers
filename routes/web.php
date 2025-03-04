@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MountainsController;
 use App\Http\Controllers\ProfilesController;
 use App\Http\Controllers\AdminTrainersController;
+use App\Http\Controllers\AvailabilityController;
 
 Route::get('/', function () {
     return view('home');
@@ -24,3 +25,4 @@ Route::any('/profile_guest_view/{user}', [App\Http\Controllers\ProfilesControlle
 Route::any('/profile/{user}/submit-datetimes', [ProfilesController::class, 'submitSelectedDatetimes'])->name('submit.selected.datetimes');
 Route::post('/profile-date/delete', [ProfilesController::class, 'deleteDateTime'])->name('profile-date.delete');
 
+Route::get('/get-availability', [AvailabilityController::class, 'getAvailability']);

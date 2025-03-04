@@ -95,7 +95,7 @@ class ProfilesController extends Controller
             $calendar = $this->build_calendar($month, $year);
 
             // Build the time selection
-            $timeSelection = $this->build_time_selection();
+            $timeSelection = $this->build_time_selection($user);
 
             // Get selected dates and times from the session
             $selectedDatetimes = Session::get('selected_datetimes', []);
@@ -226,7 +226,7 @@ class ProfilesController extends Controller
                     'selected_time' => $datetime['time'],
                 ]);
             } catch (\Exception $e) {
-                \Log::error("Invalid date format: " . $datetime['date']);
+                Log::error("Invalid date format: " . $datetime['date']);
                 return redirect()->back()->withErrors(['selected_datetimes' => 'Invalid date format provided.']);
             }
         }
@@ -239,7 +239,7 @@ class ProfilesController extends Controller
     }
 
 
-    private function build_time_selection()
+    private function build_time_selection(User $user)
     {
         $times = [];
         for ($i = 9; $i <= 15; $i++) {
@@ -267,8 +267,13 @@ class ProfilesController extends Controller
         $timeSelection .= "<div class='d-flex flex-wrap justify-content-center'>";
     
         // Fetch selected times from database
-        $existingTimes = $selectedDate ? \App\Models\UserSelectedDatetime::where('selected_date', $selectedDate)->pluck('selected_time')->toArray() : [];
-   
+        $existingTimes = $selectedDate 
+                        ? \App\Models\UserSelectedDatetime::where('selected_date', $selectedDate)
+                            ->where('user_id', $user->id)
+                            ->pluck('selected_time')
+                            ->toArray() 
+                        : [];
+    
         foreach ($times as $time) {
             // Check if the time is already selected in session
             $isDisabledInSession = false;

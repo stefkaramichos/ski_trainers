@@ -54,8 +54,11 @@
         <label for="description" class="col-md-4 col-form-label text-md-end">{{ __('auth.description') }}</label>
     
         <div class="col-md-6">
-            <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description" required>{{ $user->description }}</textarea>
-    
+            <select id="description" class="form-control @error('description') is-invalid @enderror" name="description" required>
+                <option value="Προπονητής Σκι" @if ($user->description == 'Προπονητής Σκι') selected @endif>Προπονητής Σκι</option>
+                <option value="Προπονητής Snowboard" @if ($user->description == 'Προπονητής Snowboard') selected @endif>Προπονητής Snowboard</option>
+            </select>
+
             @error('description')
                 <span class="invalid-feedback" role="alert">
                     <strong>{{ $message }}</strong>
