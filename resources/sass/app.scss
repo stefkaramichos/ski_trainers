@@ -308,6 +308,7 @@ body {
     background-color: #472326 !important;
     border: red 1px solid;
 }
+
 .delete-selected-dates:hover{
     background-color: #fff !important;
     i{
@@ -335,5 +336,20 @@ body {
                 font-size:18px !important;
             }
         }
+    }
+}
+
+.current-day{
+    background-color: #ccc !important;
+}
+
+.hour-list{
+    display: block;
+
+    li{
+        width: 155px;
+        float: left !important;
+        border-radius: 7px;
+        margin-right: 5px;
     }
 }

@@ -27,7 +27,7 @@
                             @if ($user->status == 'A')
                                 Ενεργό
                             @else 
-                                Απενεργοποιημένο
+                                Ανενεργό
                             @endif
                         </div>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $user->id }}">
@@ -44,7 +44,7 @@
                                    href="#" id="disabledLink{{ $user->id }}" 
                                    onclick="updateStatus({{ $user->id }}, 'D')" 
                                    @if($user->status == 'D') style="pointer-events: none;" @endif>
-                                   Απενεργοποιημένο
+                                   Ανενεργό
                                 </a>
                             </li>
                             <li>
@@ -89,24 +89,24 @@
                     if (status === 'A') {
                         dropdownButton.text('Ενεργό'); // Update to Ενεργό if status is 'A'
                     } else if (status === 'D') {
-                        dropdownButton.text('Απενεργοποιημένο'); // Update to Απενεργοποιημένο if status is 'D'
+                        dropdownButton.text('Ανενεργό'); // Update to Ανενεργό if status is 'D'
                     }
 
                     // Disable or enable the appropriate <a> tags in the dropdown
                     var activeLink = $('#activeLink' + userId); // The link for 'Ενεργό'
-                    var disabledLink = $('#disabledLink' + userId); // The link for 'Απενεργοποιημένο'
+                    var disabledLink = $('#disabledLink' + userId); // The link for 'Ανενεργό'
 
                     if (status === 'A') {
                         activeLink.css("pointer-events", "none"); // Disable the "Ενεργό" link
                         activeLink.addClass('disabled'); // Optional, add disabled class for styling
 
-                        disabledLink.css("pointer-events", "auto"); // Enable the "Απενεργοποιημένο" link
+                        disabledLink.css("pointer-events", "auto"); // Enable the "Ανενεργό" link
                         disabledLink.removeClass('disabled');
                     } else if (status === 'D') {
                         activeLink.css("pointer-events", "auto"); // Enable the "Ενεργό" link
                         activeLink.removeClass('disabled');
 
-                        disabledLink.css("pointer-events", "none"); // Disable the "Απενεργοποιημένο" link
+                        disabledLink.css("pointer-events", "none"); // Disable the "Ανενεργό" link
                         disabledLink.addClass('disabled'); // Optional, add disabled class for styling
                     }
                 } else {
