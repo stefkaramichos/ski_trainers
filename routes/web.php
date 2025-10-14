@@ -53,4 +53,55 @@ Route::post('/availability/times', [AvailabilityController::class, 'times'])->na
 Route::post('/availability/times-by-mountain', [AvailabilityController::class, 'timesByMountain'])
     ->name('availability.timesByMountain');
 
-Route::get('/booking/{booking}/claim', [BookingController::class, 'claim'])->name('booking.claim');
+Route::middleware('auth')->group(function () {
+    Route::get('/booking/{booking}/claim', [BookingController::class, 'claim'])->name('booking.claim');
+});
+
+
+
+// routes/web.php
+Route::get('/dev/send-claims/{booking}', function (\App\Models\Booking $booking) {
+    $mountainId = (int) $booking->mountain_id;
+    $date = $booking->selected_date;
+    $time = substr($booking->selected_time, 0, 5); // "H:i"
+
+    $instructorIds = \App\Models\User::where('status', 'A')
+        ->whereHas('mountains', fn($q) => $q->where('mountains.id', $mountainId))
+        ->pluck('id')->all();
+
+    $publishers = \App\Models\UserSelectedDatetime::whereIn('user_id', $instructorIds)
+        ->where('selected_date', $date)
+        ->where('selected_time', $time . ':00')
+        ->pluck('user_id')->all();
+
+    $booked = \App\Models\Booking::whereIn('instructor_id', $publishers)
+        ->where('selected_date', $date)
+        ->where('selected_time', $time . ':00')
+        ->whereIn('status', ['pending','confirmed','claimed'])
+        ->pluck('instructor_id')->all();
+
+    $bookedSet = array_flip($booked);
+    $eligible = array_values(array_filter($publishers, fn($id) => !isset($bookedSet[$id])));
+
+    if (!$eligible) {
+        return 'No eligible instructors for this slot.';
+    }
+
+    $links = [];
+    foreach ($eligible as $insId) {
+        $token = \Illuminate\Support\Str::random(40);
+        \App\Models\BookingClaim::create([
+            'booking_id'    => $booking->id,
+            'instructor_id' => $insId,
+            'token'         => $token,
+        ]);
+
+        // ⬇️ NO instructor param here (claim() uses Auth user)
+        $links[] = route('booking.claim', [
+            'booking' => $booking->id,
+            'token'   => $token,
+        ]);
+    }
+
+    return '<pre>'.implode("\n\n", $links).'</pre>';
+});

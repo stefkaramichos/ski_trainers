@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Booking;
 use App\Models\UserSelectedDatetime;
+use App\Models\BookingClaim;
 
 class BookingController extends Controller
 {
@@ -13,8 +16,8 @@ class BookingController extends Controller
     {
         // 1) Validation: no instructor_id required
         $validated = $request->validate([
-            'selected_date' => ['required','date'],        // Y-m-d
-            'selected_time' => ['required','date_format:H:i'],
+            'selected_date' => ['required','date'],            // Y-m-d
+            'selected_time' => ['required','date_format:H:i'], // H:i
             'mountain_id'   => ['required','integer','exists:mountains,id'],
             'customer_name' => ['required','string','max:255'],
             'customer_email'=> ['required','email'],
@@ -24,7 +27,7 @@ class BookingController extends Controller
             'notes'         => ['nullable','string','max:2000'],
         ]);
 
-        // 2) Re-check availability ACROSS instructors for that mountain/date/time
+        // 2) Re-check availability across instructors
         $isFree = $this->anyInstructorFreeAt(
             (int) $validated['mountain_id'],
             $validated['selected_date'],
@@ -37,12 +40,12 @@ class BookingController extends Controller
                 ->withInput();
         }
 
-        // 3) Save booking WITHOUT instructor for now
-        Booking::create([
-            'instructor_id' => null, // <- leave empty for now
+        // 3) Create the booking (no instructor yet)
+        $booking = Booking::create([
+            'instructor_id' => null, // still empty
             'mountain_id'   => $validated['mountain_id'],
             'selected_date' => $validated['selected_date'],
-            'selected_time' => $validated['selected_time'] . ':00', // if your column is TIME
+            'selected_time' => $validated['selected_time'] . ':00', // TIME column
             'customer_name' => $validated['customer_name'],
             'customer_email'=> $validated['customer_email'],
             'customer_phone'=> $validated['customer_phone'] ?? null,
@@ -52,51 +55,192 @@ class BookingController extends Controller
             'status'        => 'pending',
         ]);
 
-        return back()->with('success', 'Η κράτησή σας αποθηκεύτηκε με επιτυχία!');
+        // 4) Email all available instructors for this slot with claim links
+        $this->emailClaimLinksToInstructors(
+            booking: $booking,
+            mountainId: (int) $validated['mountain_id'],
+            date: $validated['selected_date'],
+            time: $validated['selected_time']
+        );
+
+        return back()->with('success', 'Η κράτησή σας αποθηκεύτηκε! Οι διαθέσιμοι εκπαιδευτές ειδοποιήθηκαν.');
     }
 
     /**
-     * Return TRUE if there exists at least one ACTIVE instructor
-     * who serves this mountain, has published availability for
-     * {date,time}, and is not already booked.
+     * Claim endpoint: first instructor who clicks gets assigned.
+     * GET /booking/{booking}/claim?instructor=ID&token=TOKEN
      */
-    private function anyInstructorFreeAt(int $mountainId, string $date, string $time): bool
+    public function claim(Request $request, Booking $booking)
     {
-        // 1) All active instructors at mountain
+        // User must be logged in (middleware ensures it)
+        $instructorId = auth()->id();
+        $token        = (string) $request->query('token');
+
+        if (!$token) {
+            return view('booking-claim-result', [
+                'ok' => false,
+                'message' => 'Λάθος σύνδεσμος.',
+            ]);
+        }
+
+        // Check claim record
+        $claim = \App\Models\BookingClaim::where('booking_id', $booking->id)
+            ->where('instructor_id', $instructorId)
+            ->where('token', $token)
+            ->whereNull('claimed_at')
+            ->whereNull('invalidated_at')
+            ->first();
+
+        if (!$claim) {
+            return view('booking-claim-result', [
+                'ok' => false,
+                'message' => 'Δεν βρέθηκε έγκυρη πρόσκληση για εσάς ή έχει λήξει.',
+            ]);
+        }
+
+        try {
+            \DB::transaction(function () use ($booking, $claim, $instructorId) {
+                $b = \App\Models\Booking::where('id', $booking->id)->lockForUpdate()->first();
+
+                if ($b->instructor_id) {
+                    throw new \RuntimeException('Η κράτηση έχει ήδη ανατεθεί.');
+                }
+
+                $b->instructor_id = $instructorId;
+                $b->status = 'claimed';
+                $b->save();
+
+                $claim->update(['claimed_at' => now()]);
+
+                \App\Models\BookingClaim::where('booking_id', $b->id)
+                    ->where('id', '!=', $claim->id)
+                    ->update(['invalidated_at' => now()]);
+            });
+        } catch (\RuntimeException $e) {
+            return view('booking-claim-result', [
+                'ok' => false,
+                'message' => $e->getMessage(),
+            ]);
+        } catch (\Throwable $e) {
+            return view('booking-claim-result', [
+                'ok' => false,
+                'message' => 'Σφάλμα κατά την ανάθεση.',
+            ]);
+        }
+
+        return view('booking-claim-result', [
+            'ok' => true,
+            'message' => 'Η κράτηση ανατέθηκε σε εσάς με επιτυχία!',
+            'booking' => $booking->fresh(),
+        ]);
+    }
+
+    /**
+     * Email claim links to all instructors who:
+     *  - are active
+     *  - serve this mountain
+     *  - have published this exact slot
+     *  - are not already booked at that slot
+     */
+    private function emailClaimLinksToInstructors(Booking $booking, int $mountainId, string $date, string $time): void
+    {
+        // Find eligible instructors
         $instructorIds = User::where('status', 'A')
             ->whereHas('mountains', fn($q) => $q->where('mountains.id', $mountainId))
             ->pluck('id')
             ->all();
 
-        if (empty($instructorIds)) {
-            return false;
-        }
+        if (!$instructorIds) return;
 
-        // 2) Which instructors advertise this exact slot (date,time)
         $publishers = UserSelectedDatetime::whereIn('user_id', $instructorIds)
             ->where('selected_date', $date)
-            ->where('selected_time', $time . ':00') // stored as TIME
+            ->where('selected_time', $time . ':00')
             ->pluck('user_id')
             ->all();
 
-        if (empty($publishers)) {
-            return false;
-        }
+        if (!$publishers) return;
 
-        // 3) Remove those already booked (pending/confirmed)
+        // 4) Booked slots for those instructors at that date
+        $booked = Booking::whereIn('instructor_id', $instructorIds)
+            ->where('selected_date', $date)
+            ->whereIn('status', ['pending', 'confirmed', 'claimed']) // ← add claimed
+            ->get(['instructor_id', 'selected_time']);
+
+
+        $bookedSet = array_flip($booked);
+        $eligible = array_values(array_filter($publishers, fn($id) => !isset($bookedSet[$id])));
+
+        if (!$eligible) return;
+
+        // Create claims + send emails (native mail())
+        foreach ($eligible as $insId) {
+            $token = Str::random(40);
+
+            BookingClaim::create([
+                'booking_id'   => $booking->id,
+                'instructor_id'=> $insId,
+                'token'        => $token,
+            ]);
+
+            $link = route('booking.claim', [
+                'booking' => $booking->id,
+                'token'   => $token,
+            ]);
+
+
+            $ins = User::find($insId);
+            if (!$ins || !$ins->email) continue;
+
+            $subject = "Νέο αίτημα μαθήματος – {$date} {$time}";
+            $body  = "Γεια σας {$ins->name},\n\n";
+            $body .= "Υπάρχει νέο αίτημα μαθήματος:\n";
+            $body .= "Ημερομηνία: {$date}\n";
+            $body .= "Ώρα: {$time}\n";
+            $body .= "Χιονοδρομικό ID: {$mountainId}\n\n";
+            $body .= "Αν μπορείτε να αναλάβετε, πατήστε τον παρακάτω σύνδεσμο (ο πρώτος που θα πατήσει κερδίζει την κράτηση):\n";
+            $body .= "{$link}\n\n";
+            $body .= "— Σύστημα κρατήσεων\n";
+
+            // Basic headers (adjust the From to your domain)
+            $headers  = "From: Κρατήσεις <no-reply@yourdomain.tld>\r\n";
+            $headers .= "Reply-To: no-reply@yourdomain.tld\r\n";
+            $headers .= "X-Mailer: PHP/" . phpversion();
+
+            // Send with native mail()
+            @mail($ins->email, $subject, $body, $headers);
+        }
+    }
+
+    /**
+     * TRUE if at least one eligible instructor is free at that slot
+     */
+    private function anyInstructorFreeAt(int $mountainId, string $date, string $time): bool
+    {
+        $instructorIds = User::where('status', 'A')
+            ->whereHas('mountains', fn($q) => $q->where('mountains.id', $mountainId))
+            ->pluck('id')
+            ->all();
+
+        if (!$instructorIds) return false;
+
+        $publishers = UserSelectedDatetime::whereIn('user_id', $instructorIds)
+            ->where('selected_date', $date)
+            ->where('selected_time', $time . ':00')
+            ->pluck('user_id')
+            ->all();
+
+        if (!$publishers) return false;
+
         $booked = Booking::whereIn('instructor_id', $publishers)
             ->where('selected_date', $date)
             ->where('selected_time', $time . ':00')
-            ->whereIn('status', ['pending','confirmed'])
+            ->whereIn('status', ['pending','confirmed','claimed'])
             ->pluck('instructor_id')
             ->all();
 
-        // If there is at least one publisher not in booked, it’s free
         $bookedSet = array_flip($booked);
         foreach ($publishers as $insId) {
-            if (!isset($bookedSet[$insId])) {
-                return true;
-            }
+            if (!isset($bookedSet[$insId])) return true;
         }
         return false;
     }

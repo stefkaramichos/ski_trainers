@@ -60,37 +60,51 @@ class AvailabilityController extends Controller
         }
 
         // 4) Booked slots for those instructors at that date
-        $booked = Booking::whereIn('instructor_id', $instructorIds)
-            ->where('selected_date', $date)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->get(['instructor_id', 'selected_time']);
+$booked = Booking::whereIn('instructor_id', $instructorIds)
+    ->where('selected_date', $date)
+    ->whereIn('status', ['pending', 'confirmed', 'claimed']) // include claimed
+    ->get(['instructor_id', 'selected_time']);
 
-        // Build a quick lookup: time => set of booked instructor_ids
-        $bookedAtTime = [];
-        foreach ($booked as $b) {
-            $t = substr($b->selected_time, 0, 5);
-            $bookedAtTime[$t] = $bookedAtTime[$t] ?? [];
-            $bookedAtTime[$t][$b->instructor_id] = true;
+// Also treat is_reserved = true as "booked"
+$reserved = UserSelectedDatetime::whereIn('user_id', $instructorIds)
+    ->where('selected_date', $date)
+    ->where('is_reserved', true)
+    ->get(['user_id', 'selected_time']);
+
+// Build a quick lookup: time => set of booked instructor_ids
+$bookedAtTime = [];
+foreach ($booked as $b) {
+    $t = substr($b->selected_time, 0, 5);
+    $bookedAtTime[$t] = $bookedAtTime[$t] ?? [];
+    $bookedAtTime[$t][$b->instructor_id] = true;
+}
+
+// Merge in reserved flags (treat as booked too)
+foreach ($reserved as $r) {
+    $t = substr($r->selected_time, 0, 5);
+    $bookedAtTime[$t] = $bookedAtTime[$t] ?? [];
+    $bookedAtTime[$t][$r->user_id] = true;
+}
+
+// 5) A time is available if there exists at least one instructor in timeToInstructors[time]
+// who is NOT in bookedAtTime[time]
+$available = [];
+foreach ($timeToInstructors as $time => $instructors) {
+    $isFreeForSomeone = false;
+    foreach ($instructors as $insId) {
+        if (empty($bookedAtTime[$time][$insId])) {
+            $isFreeForSomeone = true;
+            break;
         }
+    }
+    if ($isFreeForSomeone) $available[] = $time;
+}
 
-        // 5) A time is available if there exists at least one instructor in timeToInstructors[time]
-        // who is NOT in bookedAtTime[time]
-        $available = [];
-        foreach ($timeToInstructors as $time => $instructors) {
-            $isFreeForSomeone = false;
-            foreach ($instructors as $insId) {
-                if (empty($bookedAtTime[$time][$insId])) {
-                    $isFreeForSomeone = true;
-                    break;
-                }
-            }
-            if ($isFreeForSomeone) $available[] = $time;
-        }
+sort($available);
+return response()->json([
+    'success'   => true,
+    'available' => $available,
+]);
 
-        sort($available);
-        return response()->json([
-            'success'   => true,
-            'available' => $available,
-        ]);
     }
 }
