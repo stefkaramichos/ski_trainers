@@ -15,9 +15,9 @@
                                             <a href="{{ route('profile.view', $user->id) }}"><img src="{{ asset('storage/' . $user->image) }}" alt="Profile Image" class="img-fluid"></a>
                                         </div>
                                     @else
-                                    <div class="img-profile mx-auto pt-4">
-                                    <img width="50" src="{{ asset('storage/profile-default.png') }}" alt="Profile Image" >
-                                    </div>
+                                        <div class="img-profile mx-auto pt-4">
+                                            <img width="50" src="{{ asset('storage/profile-default.png') }}" alt="Profile Image" >
+                                        </div>
                                     @endif
                                     <div class="card-body">
                                         <h5 class="card-title trainer-name mt-3">

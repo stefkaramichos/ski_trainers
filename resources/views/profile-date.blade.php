@@ -1,7 +1,27 @@
 
+@extends('layouts.app')
 @section('content')
 <div class="main-form">
     <div class="container">
+      <div id="flash">
+        @if (session('success'))
+          <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        @if ($errors->any())
+          <div class="alert alert-danger">
+            <ul class="mb-0">
+              @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+        @endif
+
+        @error('selected_datetimes')
+          <div class="alert alert-danger">{{ $message }}</div>
+        @enderror
+      </div>
         <div class="row ">
             @include('includes.profile-header')
             @include('includes.admin-edit-menu')
@@ -53,7 +73,7 @@
             </div>
 
 
-            @extends('layouts.app')
+          
         </div>
     </div>
 </div>

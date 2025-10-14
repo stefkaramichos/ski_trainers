@@ -11,7 +11,7 @@
             </a>
         </li>
         <li class="{{ request()->routeIs('profile.date') ? 'active' : '' }}">
-            <a href="{{ route('profile.date', $user->id) }}">
+            <a title="Ρυθμίστε τις Διαθεσιμότητες" href="{{ route('profile.date', $user->id) }}">
                 <img width="25" src="{{ asset('storage/calendar.png') }}" alt="ski icon">
             </a>
         {{-- </li>

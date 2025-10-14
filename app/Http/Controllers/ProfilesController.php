@@ -11,12 +11,15 @@ use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\Mountain;
 use App\Models\UserSelectedDatetime;
+use Carbon\Carbon;
+
 
 class ProfilesController extends Controller
 {
     public function __construct()
     {
         // $this->middleware('auth');
+        Carbon::setLocale('el');
     }
 
     public function profile_view(User $user)
@@ -339,7 +342,7 @@ class ProfilesController extends Controller
 
             // inside build_calendar loop (replace the <form>...<button type='submit' ...>...</form> part)
             $html .= "<td class='text-center align-middle {$todayClass} {$lastClickedClass}'>";
-            $html .= "  <button type='button' class='btn btn-link p-0 js-select-date' data-date='{$dateYmd}'>{$currentDay}</button>";
+            $html .= "  <button type='button' class='btn button-shandow-st btn-link p-0 js-select-date' data-date='{$dateYmd}'>{$currentDay}</button>";
             $html .= "</td>";
 
 
@@ -486,7 +489,7 @@ class ProfilesController extends Controller
                 type='submit'
                 name='selected_time'
                 value='{$time}'
-                class='btn btn-outline-primary m-2 {$disabledClass}'
+                class='btn button-shandow-st btn-outline-primary m-2 {$disabledClass}'
                 {$disabledAttr}
                 data-date='{$selectedDate}'
                 data-time='{$time}'
@@ -532,7 +535,7 @@ class ProfilesController extends Controller
         Session::forget('selected_datetimes');
         Session::forget('last_selected_date');
 
-        return back()->with('success', 'Selected date-times saved successfully!');
+        return back()->with('success', 'Οι διαθεσιμότητες καταχωρήθηκαν επιτυχώς');
     }
 
     public function profile_programm(User $user)

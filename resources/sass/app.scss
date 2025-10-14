@@ -299,7 +299,7 @@ body {
     background-color: #e5e5e5 !important;
 }  
 .last-clicked{
-    background-color: #21252a !important;
+    background-color: #e0e0e0 !important;
 }
 .selected-date-for-submit:hover{
     background-color: #ececec;
@@ -343,13 +343,65 @@ body {
     background-color: #ccc !important;
 }
 
-.hour-list{
-    display: block;
-
-    li{
-        width: 155px;
-        float: left !important;
-        border-radius: 7px;
-        margin-right: 5px;
-    }
+.hour-list {
+    display: block;   
 }
+
+.hour-list li {
+  float: left;          /* make them flow horizontally */
+  width: 155px;         /* your preferred size */
+  margin-right: 5px;    /* spacing between items */
+  margin-bottom: 5px;
+  border-radius: 7px;
+  background: #d5d5d5;
+}
+
+
+.swal2-popup {
+  font-size: 0.9rem !important;
+  border-radius: 10px !important;
+}
+
+
+.session-list{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.session-list li{
+  /* remove float & fixed width */
+  border-radius: 7px;
+  background: #d5d5d5;
+}
+
+.submit-session-list{
+    clear: both;
+    position: relative;
+    top: 16px;
+}
+
+.gray-color{
+    color:#828282;
+}
+.font-s-16{
+    font-size: 17px;
+}
+.button-shandow-st{
+    box-shadow: 0px 0px 5px 0px gray;
+} 
+
+
+  /* small beauty touches */
+  .hb-card{border:0;border-radius:1rem;box-shadow:0 10px 35px rgba(0,0,0,.07)}
+  .hb-header{border:0;border-bottom:1px solid rgba(0,0,0,.06);background:#fff;border-top-left-radius:1rem;border-top-right-radius:1rem}
+  .hb-stepper .step{display:flex;align-items:center;gap:.5rem}
+  .hb-stepper .bullet{width:30px;height:30px;border-radius:999px;display:inline-grid;place-items:center;font-weight:700}
+  .hb-stepper .line{height:2px;background:rgba(0,0,0,.08)}
+  .hb-pill{border-radius:999px;padding:.15rem .6rem;font-size:.775rem}
+  .hb-muted{color:#5f6368}
+  .hb-ghost{background:#f8fafc}
+  .hb-loading{opacity:.6;pointer-events:none}
