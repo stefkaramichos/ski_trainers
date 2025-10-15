@@ -7,7 +7,7 @@ use App\Http\Controllers\AdminTrainersController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BookingController;
-//test
+//testgit 
 
 Route::get('/', function () {
     return view('home');
