@@ -100,6 +100,7 @@ class BookingController extends Controller
 
         try {
             \DB::transaction(function () use ($booking, $claim, $instructorId) {
+                // app/Http/Controllers/BookingController.php (μέσα στο transaction του claim)
                 $b = \App\Models\Booking::where('id', $booking->id)->lockForUpdate()->first();
 
                 if ($b->instructor_id) {
@@ -110,11 +111,18 @@ class BookingController extends Controller
                 $b->status = 'claimed';
                 $b->save();
 
-                $claim->update(['claimed_at' => now()]);
+                // ✅ μαρκάρουμε το slot του συγκεκριμένου instructor ως reserved
+                $timeHi = substr($b->selected_time, 0, 5); // "H:i"
+                \App\Models\UserSelectedDatetime::where('user_id', $instructorId)
+                    ->where('selected_date', $b->selected_date)
+                    ->where('selected_time', $timeHi . ':00')
+                    ->update(['is_reserved' => true]);
 
+                // ακυρώνουμε τα υπόλοιπα claims
                 \App\Models\BookingClaim::where('booking_id', $b->id)
                     ->where('id', '!=', $claim->id)
                     ->update(['invalidated_at' => now()]);
+
             });
         } catch (\RuntimeException $e) {
             return view('booking-claim-result', [
@@ -160,12 +168,12 @@ class BookingController extends Controller
 
         if (!$publishers) return;
 
-        // 4) Booked slots for those instructors at that date
-        $booked = Booking::whereIn('instructor_id', $instructorIds)
+        $booked = \App\Models\Booking::whereIn('instructor_id', $publishers)
             ->where('selected_date', $date)
-            ->whereIn('status', ['pending', 'confirmed', 'claimed']) // ← add claimed
-            ->get(['instructor_id', 'selected_time']);
-
+            ->where('selected_time', $time . ':00')
+            ->whereIn('status', ['pending','confirmed','claimed'])
+            ->pluck('instructor_id')
+            ->all();
 
         $bookedSet = array_flip($booked);
         $eligible = array_values(array_filter($publishers, fn($id) => !isset($bookedSet[$id])));
