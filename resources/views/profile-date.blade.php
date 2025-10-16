@@ -41,6 +41,7 @@
                                 ])
                             </div>
 
+
                         <div class="container mt-5">
 
                             {{-- Calendar + Time --}}
@@ -132,6 +133,11 @@ document.addEventListener('DOMContentLoaded', function () {
           document.getElementById('time-wrap').innerHTML     = data.timeSelection;
           document.getElementById('db-wrap').innerHTML       = data.dbListHtml;
           document.getElementById('session-wrap').innerHTML  = data.sessionListHtml;
+
+          initPopoverHover(document.getElementById('db-wrap'));
+          initPopoverHover(document.getElementById('time-wrap'));
+          initPopoverHover(document.getElementById('calendar-wrap'));
+          initPopoverHover(document.getElementById('session-wrap'));
           refreshPendingCount();
         } else {
           alert('Αποτυχία ενημέρωσης ημερολογίου.');
@@ -188,6 +194,11 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('time-wrap').innerHTML     = data.timeSelection;
         document.getElementById('db-wrap').innerHTML       = data.dbListHtml;
         document.getElementById('session-wrap').innerHTML  = data.sessionListHtml;
+
+        initPopoverHover(document.getElementById('db-wrap'));
+        initPopoverHover(document.getElementById('time-wrap'));
+        initPopoverHover(document.getElementById('calendar-wrap'));
+        initPopoverHover(document.getElementById('session-wrap'));
       } else {
         alert('Αποτυχία ενημέρωσης ημερολογίου.');
       }

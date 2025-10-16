@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Mountain;
 use App\Models\UserSelectedDatetime;
 use Carbon\Carbon;
+use App\Models\Booking;
 
 
 class ProfilesController extends Controller
@@ -212,7 +213,7 @@ class ProfilesController extends Controller
                 ->where('selected_date', $currentSelectedDate)
                 ->orderBy('selected_date')
                 ->orderBy('selected_time')
-                ->get(['id', 'selected_date', 'selected_time']);
+                ->get(['id', 'selected_date', 'selected_time','is_reserved']);
 
 
             // --- Session (unsaved) selections ---
@@ -233,6 +234,14 @@ class ProfilesController extends Controller
                     ];
                 }
             }
+
+            // Map bookings of THIS instructor for THIS date, keyed by "H:i"
+            $bookingsByTime = Booking::where('instructor_id', $user->id)
+                ->where('selected_date', $currentSelectedDate)
+                ->whereIn('status', ['pending','claimed','confirmed'])
+                ->get()
+                ->keyBy(fn($b) => substr($b->selected_time, 0, 5));
+
 
             $session = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
             $sessionDatetimesAll = [];
@@ -258,8 +267,9 @@ class ProfilesController extends Controller
                 'currentSelectedDate'          => $currentSelectedDate,
                 'dbDatetimesForSelectedDate'   => $dbDatetimesForSelectedDate,
                 'sessionDatetimesForSelectedDate' => $sessionDatetimesForSelectedDate,
-                'sessionDatetimesAll' => $sessionDatetimesAll,
-                'user' => $user,
+                'sessionDatetimesAll'          => $sessionDatetimesAll,
+                'user'                         => $user,
+                'bookingsByTime'               => $bookingsByTime, 
             ]);
         } elseif ($accessLevel == 'U') {
 
@@ -304,20 +314,20 @@ class ProfilesController extends Controller
         $leadingEmptyCells = $dayOfWeek - 1;
 
          $prevMonth = $month - 1; $prevYear = $year; if ($prevMonth < 1) { $prevMonth = 12; $prevYear--; }
-    $nextMonth = $month + 1; $nextYear = $year; if ($nextMonth > 12) { $nextMonth = 1; $nextYear++; }
+        $nextMonth = $month + 1; $nextYear = $year; if ($nextMonth > 12) { $nextMonth = 1; $nextYear++; }
 
-        $baseUrl = request()->url();
+            $baseUrl = request()->url();
 
-        $html  = "<div class='card mt-4'>";
-    $html .= "  <div class='card-header bg-light text-dark text-center'><h2>{$monthName} {$year}</h2></div>";
-    $html .= "  <div class='card-body'>";
-    $html .= "    <div class='d-flex justify-content-between mb-3'>";
+            $html  = "<div class='card mt-4'>";
+        $html .= "  <div class='card-header bg-light text-dark text-center'><h2>{$monthName} {$year}</h2></div>";
+        $html .= "  <div class='card-body'>";
+        $html .= "    <div class='d-flex justify-content-between mb-3'>";
 
-    // ✅ AJAX nav buttons instead of GET links
-    $html .= "      <button type='button' class='btn btn-outline-primary js-cal-nav' data-year='{$prevYear}' data-month='{$prevMonth}'>Προηγούμενος Μήνας</button>";
-    $html .= "      <button type='button' class='btn btn-outline-primary js-cal-nav' data-year='{$nextYear}' data-month='{$nextMonth}'>Επόμενος Μήνας</button>";
+        // ✅ AJAX nav buttons instead of GET links
+        $html .= "      <button type='button' class='btn btn-outline-primary js-cal-nav' data-year='{$prevYear}' data-month='{$prevMonth}'>Προηγούμενος Μήνας</button>";
+        $html .= "      <button type='button' class='btn btn-outline-primary js-cal-nav' data-year='{$nextYear}' data-month='{$nextMonth}'>Επόμενος Μήνας</button>";
 
-    $html .= "    </div>";
+        $html .= "    </div>";
 
 
         $html .= "    <table class='table table-bordered mb-0'>";
@@ -380,7 +390,7 @@ class ProfilesController extends Controller
         $dbDatetimesForSelectedDate = UserSelectedDatetime::where('user_id', $user->id)
             ->where('selected_date', $date)
             ->orderBy('selected_time')
-            ->get(['id','selected_date','selected_time']);
+            ->get(['id','selected_date','selected_time','is_reserved']);
 
         // session datetimes (ALL + filtered for selected date if you need)
         $session = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
@@ -411,14 +421,19 @@ class ProfilesController extends Controller
         $request->merge(['selected_date' => $date]);
         $timeSelection = $this->build_time_selection($user);
 
-        // Render small partials for the lists (or build HTML inline)
-        // Here we’ll build the DB list HTML inline for brevity:
-        $dbListHtml = view('partials.db-datetimes-list', [
-            'dbDatetimesForSelectedDate' => $dbDatetimesForSelectedDate,
-            'currentSelectedDate' => $currentSelectedDate ?? $date ,
-            'user' => $user, // ✅ so the route helper can build /profile/{user}/delete-saved
-        ])->render();
+        $bookingsByTime = Booking::where('instructor_id', $user->id)
+            ->where('selected_date', $date)
+            ->whereIn('status', ['pending','claimed','confirmed'])
+            ->get()
+            ->keyBy(fn($b) => substr($b->selected_time, 0, 5));
 
+
+        $dbListHtml = view('partials.db-datetimes-list', [
+                'dbDatetimesForSelectedDate' => $dbDatetimesForSelectedDate,
+                'currentSelectedDate'        => $date,
+                'user'                       => $user,
+                'bookingsByTime'             => $bookingsByTime, // ← add this
+            ])->render();
 
 
         // And the session pending list:
