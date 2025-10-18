@@ -7,6 +7,8 @@ use App\Http\Controllers\AdminTrainersController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\AdminMountainsController;
+use App\Http\Controllers\AdminBookingsController;
 //testgit 
 
 Route::get('/', function () {
@@ -106,4 +108,24 @@ Route::get('/dev/send-claims/{booking}', function (\App\Models\Booking $booking)
     }
 
     return '<pre>'.implode("\n\n", $links).'</pre>';
+});
+
+
+Route::middleware(['auth', \App\Http\Middleware\CheckSuperAdmin::class])->group(function () {
+    Route::match(['get','post'], '/admin/mountains', [AdminMountainsController::class, 'admin_mountains'])
+        ->name('admin.mountains');
+
+    Route::post('/admin/mountains/update', [AdminMountainsController::class, 'updateMountain'])
+        ->name('updateMountain');
+
+    Route::post('/admin/mountains/delete', [AdminMountainsController::class, 'deleteMountain'])
+        ->name('deleteMountain');
+});
+
+
+Route::middleware(['auth', \App\Http\Middleware\CheckSuperAdmin::class])->group(function () {
+    Route::get('/admin/bookings',  [AdminBookingsController::class, 'index'])->name('admin.bookings');
+    Route::post('/admin/bookings/status', [AdminBookingsController::class, 'updateStatus'])->name('admin.bookings.status');
+    Route::post('/admin/bookings/assign', [AdminBookingsController::class, 'assignInstructor'])->name('admin.bookings.assign');
+    Route::post('/admin/bookings/delete', [AdminBookingsController::class, 'delete'])->name('admin.bookings.delete');
 });

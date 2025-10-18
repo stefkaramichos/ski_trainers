@@ -17,6 +17,8 @@ class UserSelectedDatetime extends Model
         'is_reserved',   // <-- add
     ];
 
+    public $timestamps = true; 
+
     protected $casts = [
         'selected_date' => 'date:Y-m-d',
         'is_reserved'   => 'boolean',

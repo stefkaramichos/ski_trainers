@@ -1,13 +1,14 @@
 <div class="admin-edit-menu">
     <ul>
-        <li class="{{ request()->routeIs('profile.view') ? 'active' : '' }}">
+        {{-- <li class="{{ request()->routeIs('profile.view') ? 'active' : '' }}">
             <a href="{{ route('profile.view', $user->id) }}">
                 <img width="25" src="{{ asset('storage/user-icon.png') }}" alt="ski icon">
             </a>
-        </li>
+        </li> --}}
         <li class="{{ request()->routeIs('profile') ? 'active' : '' }}">
             <a href="{{ route('profile', $user->id) }}">
-                <img width="25" src="{{ asset('storage/settings.png') }}" alt="ski icon">
+                {{-- <img width="25" src="{{ asset('storage/settings.png') }}" alt="ski icon"> --}}
+                 <img width="25" src="{{ asset('storage/user-icon.png') }}" alt="ski icon">
             </a>
         </li>
         <li class="{{ request()->routeIs('profile.date') ? 'active' : '' }}">

@@ -55,6 +55,39 @@ class BookingController extends Controller
             'status'        => 'pending',
         ]);
 
+        $booking->load('mountain');
+
+        // 3.1) Email confirmation to the customer (native mail())
+        //     Κρατάμε το ίδιο στυλ με τα emails προς instructors.
+        try {
+            $subject = 'Επιβεβαίωση αίτησης κράτησης';
+            $body  = "Γεια σας {$booking->customer_name},\n\n";
+            $body .= "Το αίτημά σας καταχωρήθηκε. Σύντομα ένας εκπαιδευτής θα επικοινωνήσει μαζί σας.\n\n";
+            $body .= "Στοιχεία κράτησης:\n";
+            $body .= "- Ημερομηνία: {$booking->selected_date}\n";
+            $body .= "- Ώρα: {$validated['selected_time']}\n";
+            $mountainName = $booking->mountain?->mountain_name ?? '—';
+            $body .= "- Χιονοδρομικό: {$mountainName}\n";
+            $body .= "- Άτομα: {$booking->people_count}\n";
+            if (!empty($booking->notes)) {
+                $body .= "- Σημειώσεις: {$booking->notes}\n";
+            }
+            $body .= "\n— Σύστημα κρατήσεων\n";
+
+            // Basic headers (προσαρμόστε σε δικό σας domain)
+            $headers  = "From: Κρατήσεις <no-reply@yourdomain.tld>\r\n";
+            $headers .= "Reply-To: no-reply@yourdomain.tld\r\n";
+            $headers .= "X-Mailer: PHP/" . phpversion();
+
+            @mail($booking->customer_email, $subject, $body, $headers);
+        } catch (\Throwable $e) {
+            // Προαιρετικό logging — δεν μπλοκάρουμε την ροή
+            \Log::error('Customer confirmation mail failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         // 4) Email all available instructors for this slot with claim links
         $this->emailClaimLinksToInstructors(
             booking: $booking,
@@ -63,7 +96,8 @@ class BookingController extends Controller
             time: $validated['selected_time']
         );
 
-        return back()->with('success', 'Η κράτησή σας αποθηκεύτηκε! Οι διαθέσιμοι εκπαιδευτές ειδοποιήθηκαν.');
+        // Μήνυμα οθόνης όπως το ζήτησες
+        return back()->with('success', 'Το αίτημά σας καταχωρήθηκε. Σύντομα ένας εκπαιδευτής θα επικοινωνήσει μαζί σας.');
     }
 
     /**
@@ -194,7 +228,6 @@ class BookingController extends Controller
                 'booking' => $booking->id,
                 'token'   => $token,
             ]);
-
 
             $ins = User::find($insId);
             if (!$ins || !$ins->email) continue;

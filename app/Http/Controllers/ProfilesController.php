@@ -96,182 +96,178 @@ class ProfilesController extends Controller
     }
 
 
-    public function profile_date(User $user, Request $request)
-    {
-        $accessLevel = $this->checkUserAccess($user);
-        $mountains = Mountain::all(); 
-        $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
+   public function profile_date(User $user, Request $request)
+{
+    $accessLevel = $this->checkUserAccess($user);
+    $mountains = Mountain::all(); 
+    $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
 
-        if ($accessLevel == 'A') {
+    if ($accessLevel == 'A') {
 
-            // Handle date/time clicks
-            if ($request->isMethod('post')) {
-                $selectedDate = $request->input('selected_date'); // expect Y-m-d
-                $selectedTime = $request->input('selected_time'); // expect H:i
-
-                if ($selectedDate) {
-                    // Normalize/guard: if not Y-m-d try to parse
-                    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDate)) {
-                        $ts = strtotime(str_replace('/', '-', $selectedDate));
-                        if ($ts) $selectedDate = date('Y-m-d', $ts);
-                    }
-                    Session::put('last_selected_date', $selectedDate);
+        // Handle date/time clicks (unchanged) ...
+        if ($request->isMethod('post')) {
+            $selectedDate = $request->input('selected_date'); // expect Y-m-d
+            $selectedTime = $request->input('selected_time'); // expect H:i
+            if ($selectedDate) {
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDate)) {
+                    $ts = strtotime(str_replace('/', '-', $selectedDate));
+                    if ($ts) $selectedDate = date('Y-m-d', $ts);
                 }
-
-                if ($selectedDate && $selectedTime) {
-                    if (!Session::has('selected_datetimes')) {
-                        Session::put('selected_datetimes', ['dates' => [], 'times' => []]);
-                    }
-
-                    $selectedDatetimes = Session::get('selected_datetimes');
-                    $existingPairs = [];
-                    foreach ($selectedDatetimes['dates'] as $i => $d) {
-                        $dNorm = preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)
-                            ? $d
-                            : date('Y-m-d', strtotime(str_replace('/', '-', $d)));
-                        $existingPairs[] = $dNorm . ' ' . ($selectedDatetimes['times'][$i] ?? '');
-                    }
-
-                    $pair = $selectedDate . ' ' . $selectedTime;
-                    if (!in_array($pair, $existingPairs, true)) {
-                        Session::push('selected_datetimes.dates', $selectedDate);
-                        Session::push('selected_datetimes.times', $selectedTime);
-                    }
+                Session::put('last_selected_date', $selectedDate);
+            }
+            if ($selectedDate && $selectedTime) {
+                if (!Session::has('selected_datetimes')) {
+                    Session::put('selected_datetimes', ['dates' => [], 'times' => []]);
+                }
+                $selectedDatetimes = Session::get('selected_datetimes');
+                $existingPairs = [];
+                foreach ($selectedDatetimes['dates'] as $i => $d) {
+                    $dNorm = preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)
+                        ? $d
+                        : date('Y-m-d', strtotime(str_replace('/', '-', $d)));
+                    $existingPairs[] = $dNorm . ' ' . ($selectedDatetimes['times'][$i] ?? '');
+                }
+                $pair = $selectedDate . ' ' . $selectedTime;
+                if (!in_array($pair, $existingPairs, true)) {
+                    Session::push('selected_datetimes.dates', $selectedDate);
+                    Session::push('selected_datetimes.times', $selectedTime);
                 }
             }
+        }
 
-            // Already saved (DB)
-            $savedDatetimes = UserSelectedDatetime::where('user_id', $user->id)
-                ->orderBy('selected_date')
-                ->orderBy('selected_time')
-                ->get();
+        // Already saved (DB)
+        $savedDatetimes = UserSelectedDatetime::where('user_id', $user->id)
+            ->orderBy('selected_date')
+            ->orderBy('selected_time')
+            ->get();
 
-            // Session picks
-            $selectedDatetimes = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
+        // Session picks
+        $selectedDatetimes = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
 
-            // Merge Y-m-d dates for calendar highlighting
-            $selectedDatesForCalendar = collect($savedDatetimes)->pluck('selected_date')
-                ->merge($selectedDatetimes['dates'])
-                ->map(function ($d) {
-                    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) return $d;
-                    $ts = strtotime(str_replace('/', '-', $d));
-                    return $ts ? date('Y-m-d', $ts) : $d;
-                })
-                ->unique()
-                ->values()
-                ->toArray();
+        // Merge Y-m-d dates for calendar highlighting
+        $selectedDatesForCalendar = collect($savedDatetimes)->pluck('selected_date')
+            ->merge($selectedDatetimes['dates'])
+            ->map(function ($d) {
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) return $d;
+                $ts = strtotime(str_replace('/', '-', $d));
+                return $ts ? date('Y-m-d', $ts) : $d;
+            })
+            ->unique()
+            ->values()
+            ->toArray();
 
-            // Month & year + nav
-            $month = (int) $request->query('month', date('n'));
-            $year  = (int) $request->query('year', date('Y'));
-            if ($request->query('action') === 'prev') {
-                $month--; if ($month < 1) { $month = 12; $year--; }
-            } elseif ($request->query('action') === 'next') {
-                $month++; if ($month > 12) { $month = 1; $year++; }
-            }
+        // ------------------------------
+        // ✅ Determine the "current" selected date FIRST (from booking link or session)
+        // ------------------------------
+        $currentSelectedDate = $request->query('selected_date', request('selected_date')) ?: Session::get('last_selected_date', '');
 
-            // Calendar + time grid
-            $calendar = $this->build_calendar($month, $year, $selectedDatesForCalendar);
-            $timeSelection = $this->build_time_selection($user);
+        if (empty($currentSelectedDate)) {
+            $currentSelectedDate = date('Y-m-d');
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $currentSelectedDate)) {
+            $ts = strtotime(str_replace('/', '-', $currentSelectedDate));
+            $currentSelectedDate = $ts ? date('Y-m-d', $ts) : date('Y-m-d');
+        }
 
-            // Unified display list
-            $displayDatetimes = [];
-            foreach ($savedDatetimes as $item) {
-                $displayDatetimes[] = [
-                    'persisted' => true,
-                    'id'   => $item->id,
-                    'date' => $item->selected_date,
-                    'time' => substr($item->selected_time, 0, 5), // HH:MM
+        // Keep last clicked/visited date in session (helps highlighting)
+        Session::put('last_selected_date', $currentSelectedDate);
+
+        // Make sure helpers that read request('selected_date') see this value
+        $request->merge(['selected_date' => $currentSelectedDate]); // ← important
+
+        // ------------------------------
+        // ✅ Month & year default to the selected date’s month/year
+        // ------------------------------
+        $baseTs = strtotime($currentSelectedDate);
+        $defaultMonth = (int) date('n', $baseTs);
+        $defaultYear  = (int) date('Y', $baseTs);
+
+        $month = (int) $request->query('month', $defaultMonth);
+        $year  = (int) $request->query('year',  $defaultYear);
+
+        if ($request->query('action') === 'prev') {
+            $month--; if ($month < 1) { $month = 12; $year--; }
+        } elseif ($request->query('action') === 'next') {
+            $month++; if ($month > 12) { $month = 1; $year++; }
+        }
+
+        // Calendar + time grid (now built for the correct month/year)
+        $calendar = $this->build_calendar($month, $year, $selectedDatesForCalendar);
+        $timeSelection = $this->build_time_selection($user);
+
+        // Unified display list (unchanged) ...
+        $displayDatetimes = [];
+        foreach ($savedDatetimes as $item) {
+            $displayDatetimes[] = [
+                'persisted' => true,
+                'id'   => $item->id,
+                'date' => $item->selected_date,
+                'time' => substr($item->selected_time, 0, 5),
+            ];
+        }
+        foreach ($selectedDatetimes['dates'] as $index => $date) {
+            $displayDatetimes[] = [
+                'persisted'    => false,
+                'sessionIndex' => $index,
+                'date'         => $date,
+                'time'         => $selectedDatetimes['times'][$index] ?? '',
+            ];
+        }
+
+        // DB datetimes for this user and selected date
+        $dbDatetimesForSelectedDate = UserSelectedDatetime::where('user_id', $user->id)
+            ->where('selected_date', $currentSelectedDate)
+            ->orderBy('selected_date')
+            ->orderBy('selected_time')
+            ->get(['id', 'selected_date', 'selected_time','is_reserved']);
+
+        // Session (unsaved) for selected date
+        $sessionDatetimesForSelectedDate = [];
+        foreach ($selectedDatetimes['dates'] as $i => $date) {
+            $normalized = preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)
+                ? $date
+                : date('Y-m-d', strtotime(str_replace('/', '-', $date)));
+            if ($normalized === $currentSelectedDate) {
+                $sessionDatetimesForSelectedDate[] = [
+                    'index' => $i,
+                    'date'  => $normalized,
+                    'time'  => $selectedDatetimes['times'][$i] ?? '',
                 ];
             }
-            foreach ($selectedDatetimes['dates'] as $index => $date) {
-                $displayDatetimes[] = [
-                    'persisted'    => false,
-                    'sessionIndex' => $index,
-                    'date'         => $date,
-                    'time'         => $selectedDatetimes['times'][$index] ?? '',
-                ];
-            }
+        }
 
-            
-            // --- Fetch DB records for signed-in user (persisted availability) ---
-            $currentSelectedDate = request('selected_date') ?: Session::get('last_selected_date', '');
+        // Bookings for this instructor on that date
+        $bookingsByTime = Booking::where('instructor_id', $user->id)
+            ->where('selected_date', $currentSelectedDate)
+            ->whereIn('status', ['pending','claimed','confirmed'])
+            ->get()
+            ->keyBy(fn($b) => substr($b->selected_time, 0, 5));
 
-            // ✅ If nothing selected, default to today's date
-            if (empty($currentSelectedDate)) {
-                $currentSelectedDate = date('Y-m-d');
-            }
+        $session = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
+        $sessionDatetimesAll = [];
+        foreach ($session['dates'] as $i => $date) {
+            $normalizedDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)
+                ? $date
+                : date('Y-m-d', strtotime(str_replace('/', '-', $date)));
+            $sessionDatetimesAll[] = [
+                'index' => $i,
+                'date'  => $normalizedDate,
+                'time'  => $session['times'][$i] ?? '',
+            ];
+        }
 
-            // ✅ Normalize to Y-m-d format just in case
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $currentSelectedDate)) {
-                $ts = strtotime(str_replace('/', '-', $currentSelectedDate));
-                $currentSelectedDate = $ts ? date('Y-m-d', $ts) : date('Y-m-d');
-            }
-
-            // ✅ Fetch DB datetimes for this user and date
-            $dbDatetimesForSelectedDate = UserSelectedDatetime::where('user_id', $user->id)
-                ->where('selected_date', $currentSelectedDate)
-                ->orderBy('selected_date')
-                ->orderBy('selected_time')
-                ->get(['id', 'selected_date', 'selected_time','is_reserved']);
-
-
-            // --- Session (unsaved) selections ---
-            $sessionDatetimes = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
-
-            $sessionDatetimesForSelectedDate = [];
-            foreach ($sessionDatetimes['dates'] as $i => $date) {
-                // normalize both to Y-m-d for comparison
-                $normalized = preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)
-                    ? $date
-                    : date('Y-m-d', strtotime(str_replace('/', '-', $date)));
-
-                if ($normalized === $currentSelectedDate) {
-                    $sessionDatetimesForSelectedDate[] = [
-                        'index' => $i,
-                        'date'  => $normalized,
-                        'time'  => $sessionDatetimes['times'][$i] ?? '',
-                    ];
-                }
-            }
-
-            // Map bookings of THIS instructor for THIS date, keyed by "H:i"
-            $bookingsByTime = Booking::where('instructor_id', $user->id)
-                ->where('selected_date', $currentSelectedDate)
-                ->whereIn('status', ['pending','claimed','confirmed'])
-                ->get()
-                ->keyBy(fn($b) => substr($b->selected_time, 0, 5));
-
-
-            $session = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
-            $sessionDatetimesAll = [];
-
-            foreach ($session['dates'] as $i => $date) {
-                // Normalize to Y-m-d
-                $normalizedDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)
-                    ? $date
-                    : date('Y-m-d', strtotime(str_replace('/', '-', $date)));
-
-                $sessionDatetimesAll[] = [
-                    'index' => $i,                                // session index (for delete)
-                    'date'  => $normalizedDate,                   // Y-m-d
-                    'time'  => $session['times'][$i] ?? '',       // H:i
-                ];
-            }
-
-            return view('profile-date', [
-                'user'                         => $user,
-                'calendar'                     => $calendar,
-                'timeSelection'                => $timeSelection,
-                'selectedDatetimes'            => $sessionDatetimes,
-                'currentSelectedDate'          => $currentSelectedDate,
-                'dbDatetimesForSelectedDate'   => $dbDatetimesForSelectedDate,
-                'sessionDatetimesForSelectedDate' => $sessionDatetimesForSelectedDate,
-                'sessionDatetimesAll'          => $sessionDatetimesAll,
-                'user'                         => $user,
-                'bookingsByTime'               => $bookingsByTime, 
-            ]);
-        } elseif ($accessLevel == 'U') {
+        return view('profile-date', [
+            'user'                            => $user,
+            'calendar'                        => $calendar,
+            'timeSelection'                   => $timeSelection,
+            'selectedDatetimes'               => $selectedDatetimes,
+            'currentSelectedDate'             => $currentSelectedDate,
+            'dbDatetimesForSelectedDate'      => $dbDatetimesForSelectedDate,
+            'sessionDatetimesForSelectedDate' => $sessionDatetimesForSelectedDate,
+            'sessionDatetimesAll'             => $sessionDatetimesAll,
+            'bookingsByTime'                  => $bookingsByTime, 
+        ]);
+    } elseif ($accessLevel == 'U') {
 
             return view('profile-guest-view', [
                 'user'         => $user,
@@ -503,6 +499,7 @@ class ProfilesController extends Controller
             $html .= "<button
                 type='submit'
                 name='selected_time'
+                title= 'Καταχωρείστε νέα ώρα'
                 value='{$time}'
                 class='btn button-shandow-st btn-outline-primary m-2 {$disabledClass}'
                 {$disabledAttr}

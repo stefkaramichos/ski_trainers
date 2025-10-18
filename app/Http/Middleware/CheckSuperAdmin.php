@@ -18,7 +18,7 @@ class CheckSuperAdmin
     public function handle(Request $request, Closure $next)
     {
         // Check if the authenticated user is a super admin
-        if (Auth::check() && Auth::user()->super_admin == 'y') {
+        if (Auth::check() && Auth::user()->super_admin == 'Y') {
             return $next($request);
         }
 

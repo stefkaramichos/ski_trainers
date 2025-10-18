@@ -326,6 +326,20 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const url = new URL(window.location.href);
+    // Only clean if 'selected_date' or other parameters exist
+    if (url.search) {
+        url.search = ''; // remove all query parameters
+        // Preserve anchor like #available-times
+        const cleanUrl = url.toString();
+        // Replace the current history entry (no reload)
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+});
+</script>
+
  
 <script>
 document.addEventListener('DOMContentLoaded', function () {

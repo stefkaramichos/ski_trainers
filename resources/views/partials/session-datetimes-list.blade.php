@@ -5,6 +5,7 @@
   $pendingCount = is_countable($sessionItems) ? count($sessionItems) : 0;
 @endphp
 
+@if ($pendingCount)
 <div class="mb-4">
   <h3 class="mb-3 gray-color font-weight-bold text-left">
     <b>
@@ -12,6 +13,7 @@
       (<span id="pending-count">{{ $pendingCount }}</span>)
     </b>
   </h3>
+ 
 
   <form id="save-all-form" method="POST" action="{{ route('submit.selected.datetimes', $user) }}">
     @csrf
@@ -67,8 +69,9 @@
               type="submit"
               class="button-shandow-st p-3 mb-5 rounded btn btn-success"
               @if ($pendingCount === 0) disabled @endif>
-        <i class="fa fa-save"></i> Καταχώρηση Νέων Ημερομηνιών & Ωρών
+        <i class="fa fa-save"></i> Καταχώρηση Νέων Διαθεσιμοτήτων
       </button>
     </div>
   </form>
 </div>
+ @endif

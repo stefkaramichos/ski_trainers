@@ -13,11 +13,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
-    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
 
 
-{{-- SweetAlert2 --}}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    {{-- SweetAlert2 --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -46,7 +47,10 @@
                                         <a class="nav-link" href="{{ route('admin.trainers') }}">Προπονητές</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" href="">Χιονοδρομικά</a>
+                                        <a class="nav-link" href="{{ route('admin.mountains') }}">Χιονοδρομικά</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('admin.bookings') }}">Κρατήσεις</a>
                                     </li>
                                 </ul>
                             </div>
@@ -117,6 +121,6 @@
             @yield('content')
         </main>
     </div>
- 
+@stack('scripts')
 </body>
 </html>

@@ -25,6 +25,18 @@
             <p class="mb-1"><strong>Ημερομηνία:</strong> {{ $booking->selected_date }}</p>
             <p class="mb-1"><strong>Ώρα:</strong> {{ \Illuminate\Support\Str::of($booking->selected_time)->substr(0,5) }}</p>
             <p class="mb-0"><strong>Κατάσταση:</strong> {{ $booking->status }}</p>
+            <br>
+            <p class="see-claimed-booking">
+              <img width="25" src="{{ asset('storage/calendar.png') }}" alt="ski icon">
+              <a
+                title="Δείτε την κράτησή σας στο ημερολόγιο"
+                href="{{ route('profile.date', ['user' => Auth::user()->id, 'selected_date' => $booking->selected_date]) }}"
+              >
+                 Δείτε την κράτησή σας στο ημερολόγιο
+              </a>
+            </p>
+
+
           @endisset
         </div>
       </div>

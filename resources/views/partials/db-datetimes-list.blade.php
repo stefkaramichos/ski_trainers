@@ -5,7 +5,7 @@
   <h5 class="gray-color mb-3 availability-text">Διαθεσιμότητα</h5>
 @endif
 
-<ul class="list-group hour-list">
+<ul class="list-group hour-list" id="available-times">
   @forelse ($dbDatetimesForSelectedDate as $item)
     @php
       $timeHi = substr($item->selected_time, 0, 5);
