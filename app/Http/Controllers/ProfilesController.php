@@ -689,7 +689,9 @@ class ProfilesController extends Controller
                 ]);
             }
         } else {
-            return redirect()->route('home');
+            return redirect()
+                ->route('home')
+                ->withErrors(['access_denied' => 'You do not have permission to view this profile.']);
         }   
     }
 

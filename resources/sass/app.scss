@@ -487,3 +487,100 @@ body {
     .loader-gif {
     width: 120px;
     }
+
+    .main-login-form {
+        background-color: #0d1118;
+        // background: linear-gradient(135deg, #0d1118, #fdd835);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Poppins', sans-serif;
+
+        .login-card {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+            color: #fff;
+            width: 100%;
+            max-width: 450px;
+            padding: 40px 35px;
+        }
+
+        .login-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 28px;
+            margin-bottom: 25px;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #fff;
+            border-radius: 10px;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(143, 148, 251, 0.5);
+        }
+
+        .form-check-label {
+            color: #ddd;
+        }
+
+        .btn-primary {
+            background: #fdd835;
+            // background: linear-gradient(to right, #fdd835, #f6f7f7);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(37, 117, 252, 0.4);
+        }
+
+        .btn-link {
+            color: #c8d6e5;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+            color: #fff;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: #eee;
+        }
+
+        .invalid-feedback {
+            color: #ffbaba;
+        }
+        select.form-control{
+            color: #a9a9a9 !important;
+        }
+        
+    }
+
+    
+
+    .auth-page .navbar {
+        background-color: #0d1118 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .auth-page .navbar-brand,
+    .auth-page .nav-link {
+        color: #fff !important;
+    }
+    .auth-page .nav-link:hover {
+        color: #fdd835 !important;
+    }

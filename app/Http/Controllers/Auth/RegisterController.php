@@ -8,6 +8,9 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Mountain;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewUserRegisteredMail;
+
 class RegisterController extends Controller
 {
     /*
@@ -79,7 +82,6 @@ public function showRegistrationForm()
             $imagePath = $data['image']->store('profiles', 'public');
         }
 
-        // Create the user
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -88,13 +90,13 @@ public function showRegistrationForm()
             'image' => $imagePath,
         ]);
 
-        // Attach mountains to the user (store in pivot table)
         if (isset($data['mountains'])) {
             $user->mountains()->attach($data['mountains']);
         }
 
+        // ✅ Send email notification to booking@domain
+        Mail::to('booking@domain')->send(new NewUserRegisteredMail($user));
+
         return $user;
     }
-
-
 }
