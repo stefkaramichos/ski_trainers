@@ -465,3 +465,25 @@ body {
         color: #023aff;
     }
   }
+
+   .page-loader {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.6); /* transparent white overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1055;
+    transition: opacity 0.25s ease;
+    opacity: 0;
+    pointer-events: none;
+    }
+
+    .page-loader.active {
+    opacity: 1;
+    pointer-events: all;
+    }
+
+    .loader-gif {
+    width: 120px;
+    }

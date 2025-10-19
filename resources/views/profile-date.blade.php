@@ -83,9 +83,47 @@
 
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+/**
+ * Single JS file:
+ * - Shows a centered page loader GIF during async actions (no calendar fade/disable).
+ * - Handles date select, month nav, delete saved (DB) and delete session (pending).
+ * - Updates all fragments returned by the server.
+ * - Keeps simple helpers only; no UI dimming except the loader overlay.
+ *
+ * Requirements in your Blade/layout (HTML + CSS not included here):
+ *   <div id="page-loader" class="page-loader d-none"> ... </div>
+ * and CSS that toggles .active to show it (as we discussed).
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
+  // ---- Elements
+  const $cal     = document.getElementById('calendar-wrap');
+  const $time    = document.getElementById('time-wrap');
+  const $db      = document.getElementById('db-wrap');
+  const $session = document.getElementById('session-wrap');
+  const $flash   = document.getElementById('flash');
+
+  // ---- Loader (centered overlay). We ONLY toggle this — no other UI fading.
+  function showLoader(show = true) {
+    const el = document.getElementById('page-loader');
+    if (!el) return;
+    el.classList.toggle('active', !!show);
+    el.classList.toggle('d-none', !show);
+  }
+
+  // ---- Flash helper (fallback to alert if container missing)
+  function flash(type, msg) {
+    if (!$flash) { alert(msg); return; }
+    const div = document.createElement('div');
+    div.className = `alert alert-${type}`;
+    div.setAttribute('role','status');
+    div.textContent = msg;
+    $flash.prepend(div);
+    setTimeout(() => div.remove(), 4000);
+  }
+
+  // ---- Basic POST JSON helper
   async function postJson(url, payload) {
     const res = await fetch(url, {
       method: 'POST',
@@ -94,323 +132,178 @@ document.addEventListener('DOMContentLoaded', function () {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload || {})
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   }
 
+  // ---- Update fragments returned by backend
+  function updateAllFragments(data) {
+    if (data.calendar && $cal)        $cal.innerHTML = data.calendar;
+    if (data.timeSelection && $time)  $time.innerHTML = data.timeSelection;
+    if (data.dbListHtml && $db)       $db.innerHTML = data.dbListHtml;
+    if (data.sessionListHtml && $session) $session.innerHTML = data.sessionListHtml;
+    refreshPendingCount();
+    reinitEnhancements();
+  }
+
+  // ---- Optional re-initialization hook (tooltips/popovers etc.)
+  function reinitEnhancements() {
+    if (typeof window.initPopoverHover === 'function') {
+      window.initPopoverHover($cal);
+      window.initPopoverHover($time);
+      window.initPopoverHover($db);
+      window.initPopoverHover($session);
+    }
+  }
+
+  // ---- Pending list count + save-all button state
   function refreshPendingCount() {
     const list = document.getElementById('pending-list');
-    const countEl = document.getElementById('pending-count');
-    const saveBtn = document.getElementById('save-all-btn');
     if (!list) return;
     const n = list.querySelectorAll('li').length;
+    const countEl = document.getElementById('pending-count');
+    const saveBtn = document.getElementById('save-all-btn');
     if (countEl) countEl.textContent = n;
     if (saveBtn) saveBtn.disabled = n === 0;
   }
+  refreshPendingCount();
 
-  document.body.addEventListener('click', async function (e) {
-    // Month navigation (AJAX)
-    const navBtn = e.target.closest('.js-cal-nav');
-    if (navBtn) {
-      const y = navBtn.getAttribute('data-year');
-      const m = navBtn.getAttribute('data-month');
-      const yNum = parseInt(y, 10);
-      const mNum = parseInt(m, 10);
-      const monthStr = String(mNum).padStart(2, '0');
-      const targetDate = `${yNum}-${monthStr}-01`; // first day of target month
-
-      const selectUrl = document.getElementById('calendar-wrap')?.dataset.selectDateUrl;
-      if (!selectUrl) {
-        console.error('Missing data-select-date-url on #calendar-wrap');
-        return;
-      }
-
-      try {
-        const data = await postJson(selectUrl, { selected_date: targetDate });
-        if (data.success) {
-          document.getElementById('calendar-wrap').innerHTML = data.calendar;
-          document.getElementById('time-wrap').innerHTML     = data.timeSelection;
-          document.getElementById('db-wrap').innerHTML       = data.dbListHtml;
-          document.getElementById('session-wrap').innerHTML  = data.sessionListHtml;
-
-          initPopoverHover(document.getElementById('db-wrap'));
-          initPopoverHover(document.getElementById('time-wrap'));
-          initPopoverHover(document.getElementById('calendar-wrap'));
-          initPopoverHover(document.getElementById('session-wrap'));
-          refreshPendingCount();
-        } else {
-          alert('Αποτυχία ενημέρωσης ημερολογίου.');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Σφάλμα κατά την ενημέρωση.');
-      }
-      return;
-    }
-
-    // ... keep your existing handlers for .js-select-date, .js-delete-saved, .js-delete-session ...
-  });
-});
-</script>
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-  const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-  async function postJson(url, payload) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': csrf,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    return await res.json();
-  }
-
-  document.body.addEventListener('click', async function (e) {
-    const dayBtn = e.target.closest('.js-select-date');
-    if (!dayBtn) return;
-
-    const date = dayBtn.getAttribute('data-date'); // Y-m-d
-
-    // POST to /profile/{user}/select-date
-    // Safer: set data-url on a wrapper or read from a data attribute you render with the user id
-    const url = dayBtn.dataset.url || dayBtn.closest('[data-select-date-url]')?.dataset.selectDateUrl;
-    if (!url) {
-      console.error('Missing select-date URL. Add data-select-date-url on a parent wrapper.');
-      return;
-    }
-
-    try {
-      const data = await postJson(url, { selected_date: date });
-      if (data.success) {
-        // Replace fragments
-        document.getElementById('calendar-wrap').innerHTML = data.calendar;
-        document.getElementById('time-wrap').innerHTML     = data.timeSelection;
-        document.getElementById('db-wrap').innerHTML       = data.dbListHtml;
-        document.getElementById('session-wrap').innerHTML  = data.sessionListHtml;
-
-        initPopoverHover(document.getElementById('db-wrap'));
-        initPopoverHover(document.getElementById('time-wrap'));
-        initPopoverHover(document.getElementById('calendar-wrap'));
-        initPopoverHover(document.getElementById('session-wrap'));
-      } else {
-        alert('Αποτυχία ενημέρωσης ημερολογίου.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Σφάλμα κατά την ενημέρωση.');
-    }
-  });
-});
-
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-  // existing helpers...
+  // ---- If a row is removed, re-enable time button when not blocked by DB/session
   function enableTimeIfPossible(date, time) {
-    // Only re-enable if the calendar pane currently shows this date
     const btn = document.querySelector(`button[name="selected_time"][value="${time}"][data-date="${date}"]`);
     if (!btn) return;
-
-    // Flip the DB flag; if session flag not set, enable the button
-    const dbBlocked = btn.getAttribute('data-disabled-db') === '1';
-    if (dbBlocked) {
-      btn.setAttribute('data-disabled-db', '0');
-      const sessionBlocked = btn.getAttribute('data-disabled-session') === '1';
-      if (!sessionBlocked) {
-        btn.disabled = false;
-        btn.classList.remove('disabled');
-      }
+    const dbBlocked   = btn.getAttribute('data-disabled-db') === '1';
+    const sesBlocked  = btn.getAttribute('data-disabled-session') === '1';
+    if (!dbBlocked && !sesBlocked) {
+      btn.disabled = false;
+      btn.classList.remove('disabled');
     }
   }
 
-  document.body.addEventListener('click', async function (e) {
-    // --- Saved (DB) delete
-        const btnSaved = e.target.closest('.js-delete-saved');
-        if (btnSaved) {
-        const id   = btnSaved.getAttribute('data-id');
-        const date = btnSaved.getAttribute('data-date');
-        const time = btnSaved.getAttribute('data-time');
-        const url  = btnSaved.getAttribute('data-url'); // <-- use this
-        btnSaved.disabled = true;
+  // ---- Get select-date URL from wrapper attribute
+  function getSelectUrl() {
+    return document.getElementById('calendar-wrap')?.dataset.selectDateUrl || null;
+  }
 
-        try {
-            const res  = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrf,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id })
-            });
+  // ---- Select a date (from day click or month nav)
+  async function handleSelectDate(targetDate) {
+    const url = getSelectUrl();
+    if (!url) { console.error('Missing data-select-date-url on #calendar-wrap'); return; }
+    showLoader(true);
+    try {
+      const data = await postJson(url, { selected_date: targetDate });
+      if (data?.success) updateAllFragments(data);
+      else flash('danger','Αποτυχία ενημέρωσης ημερολογίου.');
+    } catch (err) {
+      console.error(err);
+      flash('danger','Σφάλμα κατά την ενημέρωση.');
+    } finally {
+      showLoader(false);
+    }
+  }
 
-        const data = await res.json();
+  // ---- Delegated clicks
+  document.body.addEventListener('click', async (e) => {
+    // Month navigation
+    const calNav = e.target.closest('.js-cal-nav');
+    if (calNav) {
+      const y = String(calNav.getAttribute('data-year') || '');
+      const m = String(calNav.getAttribute('data-month') || '');
+      if (y && m) {
+        const monthStr = m.padStart(2, '0');
+        await handleSelectDate(`${y}-${monthStr}-01`);
+      }
+      return;
+    }
 
-        if (data.success) {
-          // Remove row from list
+    // Day selection
+    const dayBtn = e.target.closest('.js-select-date');
+    if (dayBtn) {
+      const date = dayBtn.getAttribute('data-date'); // Y-m-d
+      if (date) await handleSelectDate(date);
+      return;
+    }
+
+    // Delete saved (DB)
+    const btnSaved = e.target.closest('.js-delete-saved');
+    if (btnSaved) {
+      const id   = btnSaved.getAttribute('data-id');
+      const date = btnSaved.getAttribute('data-date');
+      const time = btnSaved.getAttribute('data-time');
+      const url  = btnSaved.getAttribute('data-url'); // server renders this
+      if (!url || !id) return;
+
+      showLoader(true);
+      try {
+        const res = await postJson(url, { id });
+        if (res?.success) {
           const row = document.getElementById('saved-item-' + id);
-          if (row) row.remove();
-
-          // Re-enable the time button if this date is currently shown
+          row?.remove();
           enableTimeIfPossible(date, time);
+          refreshPendingCount();
         } else {
-          alert(data.message || 'Αποτυχία διαγραφής.');
-          btnSaved.disabled = false;
+          flash('danger', res?.message || 'Αποτυχία διαγραφής.');
         }
       } catch (err) {
         console.error(err);
-        alert('Παρουσιάστηκε σφάλμα. Προσπαθήστε ξανά.');
-        btnSaved.disabled = false;
+        flash('danger','Παρουσιάστηκε σφάλμα. Προσπαθήστε ξανά.');
+      } finally {
+        showLoader(false);
       }
-      return; // prevent falling through
+      return;
     }
 
-    // --- Session delete (you already have this handler) ---
+    // Delete session (pending)
     const btnSess = e.target.closest('.js-delete-session');
     if (btnSess) {
       const index = btnSess.getAttribute('data-index');
       const date  = btnSess.getAttribute('data-date');
       const time  = btnSess.getAttribute('data-time');
-      btnSess.disabled = true;
+      const url   = "{{ route('profile-date.delete') }}";
+      if (!index) return;
 
+      showLoader(true);
       try {
-        const res = await fetch("{{ route('profile-date.delete') }}", {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': csrf,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ delete_index: index, date, time })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          const row = document.getElementById('session-item-' + index);
-          if (row) row.remove();
-
-          // Clear session-based disable on the time button
-          const btn = document.querySelector(`button[name="selected_time"][value="${time}"][data-date="${date}"]`);
-          if (btn) {
-            const sessionBlocked = btn.getAttribute('data-disabled-session') === '1';
-            if (sessionBlocked) {
-              btn.setAttribute('data-disabled-session', '0');
-              const dbBlocked = btn.getAttribute('data-disabled-db') === '1';
-              if (!dbBlocked) {
-                btn.disabled = false;
-                btn.classList.remove('disabled');
-              }
-            }
+        const res = await postJson(url, { delete_index: index, date, time });
+        if (res?.success) {
+          // Replace the session list HTML so indices stay correct
+          // Replace the session list HTML even if it's empty
+          if ($session) {
+            $session.innerHTML = (res.sessionListHtml ?? '');
           }
+          refreshPendingCount();
+
+          // Re-enable the time button if possible
+          const btn = document.querySelector(`button[name="selected_time"][value="${time}"][data-date="${date}"]`);
+          if (btn && btn.getAttribute('data-disabled-session') === '1') {
+            btn.setAttribute('data-disabled-session', '0');
+            enableTimeIfPossible(date, time);
+          }
+          refreshPendingCount();
         } else {
-          alert(data.message || 'Αποτυχία διαγραφής.');
-          btnSess.disabled = false;
+          flash('danger', res?.message || 'Αποτυχία διαγραφής.');
         }
       } catch (err) {
         console.error(err);
-        alert('Παρουσιάστηκε σφάλμα. Προσπαθήστε ξανά.');
-        btnSess.disabled = false;
+        flash('danger','Παρουσιάστηκε σφάλμα. Προσπαθήστε ξανά.');
+      } finally {
+        showLoader(false);
       }
     }
   });
-});
-</script>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
+  // ---- Clean query params once (preserve hash)
+  (function cleanQueryOnce() {
     const url = new URL(window.location.href);
-    // Only clean if 'selected_date' or other parameters exist
     if (url.search) {
-        url.search = ''; // remove all query parameters
-        // Preserve anchor like #available-times
-        const cleanUrl = url.toString();
-        // Replace the current history entry (no reload)
-        window.history.replaceState({}, document.title, cleanUrl);
+      url.search = '';
+      window.history.replaceState({}, document.title, url.toString());
     }
-});
-</script>
+  })();
 
- 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  const list = document.getElementById('pending-list');
-  const countEl = document.getElementById('pending-count');
-  const saveBtn = document.getElementById('save-all-btn');
-
-  function refreshCount() {
-    if (!list) return;
-    const n = list.querySelectorAll('li').length;
-    if (countEl) countEl.textContent = n;
-    if (saveBtn) saveBtn.disabled = n === 0;
-  }
-  refreshCount();
-
-  document.body.addEventListener('click', async function (e) {
-    const btn = e.target.closest('.js-delete-session');
-    if (!btn) return;
-
-    const index = btn.getAttribute('data-index');
-    const date  = btn.getAttribute('data-date'); // Y-m-d
-    const time  = btn.getAttribute('data-time'); // HH:MM
-    if (index === null) return;
-
-    btn.disabled = true;
-
-    try {
-      const res = await fetch("{{ route('profile-date.delete') }}", {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': csrf,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ delete_index: index, date, time })
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        // 1) Remove the LI (removes hidden inputs)
-        const row = document.getElementById('session-item-' + index);
-        if (row) row.remove();
-
-        // 2) Enable the corresponding time button if DB isn't blocking it
-        const selector = `button[name="selected_time"][value="${time}"][data-date="${date}"]`;
-        const timeBtn = document.querySelector(selector);
-        if (timeBtn) {
-          // Only session was disabling it? Flip the flag
-          const hadSessionBlock = timeBtn.getAttribute('data-disabled-session') === '1';
-          if (hadSessionBlock) {
-            timeBtn.setAttribute('data-disabled-session', '0');
-            const dbBlock = timeBtn.getAttribute('data-disabled-db') === '1';
-            if (!dbBlock) {
-              timeBtn.disabled = false;
-              timeBtn.classList.remove('disabled');
-            }
-          }
-        }
-
-        refreshCount();
-      } else {
-        alert(data.message || 'Αποτυχία διαγραφής.');
-        btn.disabled = false;
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Παρουσιάστηκε σφάλμα. Προσπαθήστε ξανά.');
-      btn.disabled = false;
-    }
-  });
+  // ---- Initial enhancement re-init (if needed)
+  reinitEnhancements();
 });
 </script>

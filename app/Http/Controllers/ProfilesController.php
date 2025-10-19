@@ -35,30 +35,82 @@ class ProfilesController extends Controller
 
     public function deleteSession(Request $request)
     {
-        $index = (int) $request->input('delete_index');
+        // Inputs
+        $index = $request->input('delete_index'); // may be stale — we won't rely on it
+        $date  = trim((string) $request->input('date', ''));
+        $time  = trim((string) $request->input('time', ''));
+
+        // Normalize date to Y-m-d
+        if ($date && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $ts = strtotime(str_replace('/', '-', $date));
+            $date = $ts ? date('Y-m-d', $ts) : $date;
+        }
+
         $selected = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
 
         $removed = false;
-        if (isset($selected['dates'][$index])) {
-            array_splice($selected['dates'], $index, 1);
-            array_splice($selected['times'], $index, 1);
-            Session::put('selected_datetimes', $selected);
-            $removed = true;
+
+        // 1) If the provided index still matches the same (date,time), delete fast
+        if (is_numeric($index)
+            && isset($selected['dates'][$index], $selected['times'][$index])) {
+
+            $d = $selected['dates'][$index];
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) {
+                $ts = strtotime(str_replace('/', '-', $d));
+                $d  = $ts ? date('Y-m-d', $ts) : $d;
+            }
+
+            if ($d === $date && ($selected['times'][$index] ?? '') === $time) {
+                array_splice($selected['dates'], $index, 1);
+                array_splice($selected['times'], $index, 1);
+                $removed = true;
+            }
         }
 
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => $removed,
-                'message' => $removed ? 'Removed.' : 'Not found.',
-                'index'   => $index,
-                // echo back for client convenience
-                'date'    => $request->input('date'),
-                'time'    => $request->input('time'),
-            ]);
+        // 2) Fallback: find by (date,time) pair, delete the first match
+        if (!$removed && $date && $time) {
+            foreach ($selected['dates'] as $i => $d) {
+                $dNorm = preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)
+                    ? $d
+                    : date('Y-m-d', strtotime(str_replace('/', '-', $d)));
+                if ($dNorm === $date && ($selected['times'][$i] ?? '') === $time) {
+                    array_splice($selected['dates'], $i, 1);
+                    array_splice($selected['times'], $i, 1);
+                    $removed = true;
+                    break;
+                }
+            }
         }
 
-        return back();
+        // Save session back
+        Session::put('selected_datetimes', $selected);
+
+        // Rebuild the yellow list so the client can replace it (keeps indices correct)
+        $sessionDatetimesAll = [];
+        foreach ($selected['dates'] as $i => $d) {
+            $dNorm = preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)
+                ? $d
+                : date('Y-m-d', strtotime(str_replace('/', '-', $d)));
+            $sessionDatetimesAll[] = [
+                'index' => $i,
+                'date'  => $dNorm,
+                'time'  => $selected['times'][$i] ?? '',
+            ];
+        }
+        $sessionListHtml = view('partials.session-datetimes-list', [
+            'sessionDatetimesAll' => $sessionDatetimesAll,
+            'user' => $request->route('user') ?? auth()->user(), // pass user for the Save All form route
+        ])->render();
+
+        return response()->json([
+            'success'          => $removed,
+            'message'          => $removed ? 'Removed.' : 'Not found.',
+            'date'             => $date,
+            'time'             => $time,
+            'sessionListHtml'  => $sessionListHtml,
+        ]);
     }
+
 
 
     // ProfilesController.php
