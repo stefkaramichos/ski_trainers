@@ -685,3 +685,24 @@ body {
             margin-bottom: 0px;
         }
     }
+
+    .edit-profile-info{
+        form{
+            border: #a2a2a2 1px solid;
+            border-radius: 10px;
+            max-width: 650px;
+            margin: auto;
+            @media(min-width:767px){
+                padding: 45px;
+            }
+        }
+    }
+
+    #calendar-wrap{
+
+        td{
+            button{
+                width: 100%;
+            }
+        } 
+    }

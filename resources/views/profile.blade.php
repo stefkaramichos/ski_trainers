@@ -12,7 +12,7 @@
                         Στοιχεία Λογαριασμού
                     </div>
 
-                    <div class="card-body edit-profile">   
+                    <div class="card-body edit-profile-info edit-profile">   
                         @include('includes.success-error-message')
                         @include('includes.edit-form-profile')
                     </div>
