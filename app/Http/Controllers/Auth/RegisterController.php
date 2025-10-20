@@ -95,7 +95,7 @@ public function showRegistrationForm()
         }
 
         // ✅ Send email notification to booking@domain
-        Mail::to('booking@domain')->send(new NewUserRegisteredMail($user));
+        Mail::to('booking@ski-lessons.gr')->send(new NewUserRegisteredMail($user));
 
         return $user;
     }
