@@ -31,7 +31,7 @@
                         Διαθεσιμότητα
                     </div>
 
-                    <div class="card-body">
+                  <div class="card-body edit-profile">
                         {{-- === SESSION (ALL PENDING) === --}}
                         {{-- Session (yellow) list + Save All --}}
                             <div id="session-wrap">
@@ -43,7 +43,6 @@
 
 
                         <div class="container mt-5">
-
                             {{-- Calendar + Time --}}
                             <div id="calendar-wrap" data-select-date-url="{{ route('profile-date.selectDate', $user) }}">
                                 {!! $calendar !!}
@@ -65,9 +64,6 @@
                             </div>
 
                         </div>
-
-                        
-                    
                     </div>
                     
                 </div> 

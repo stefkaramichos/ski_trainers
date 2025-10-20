@@ -398,10 +398,16 @@ class ProfilesController extends Controller
             //$selectedClass = $isSelected ? 'bg-info text-white' : '';
             $lastClickedClass = ($lastSelectedDate === $dateYmd) ? 'last-clicked' : '';
 
-            // inside build_calendar loop (replace the <form>...<button type='submit' ...>...</form> part)
             $html .= "<td class='text-center align-middle {$todayClass} {$lastClickedClass}'>";
-            $html .= "  <button type='button' class='btn button-shandow-st btn-link p-0 js-select-date' data-date='{$dateYmd}'>{$currentDay}</button>";
+            $html .= "  <button type='button'
+                            class='cal-day-btn btn btn-ghost js-select-date'
+                            data-date='{$dateYmd}'
+                            aria-pressed='".($isSelected ? "true" : "false")."'
+                            aria-label='Επιλογή ημερομηνίας {$currentDay} {$monthName} {$year}'>
+                            <span class='cal-day-num'>{$currentDay}</span>
+                        </button>";
             $html .= "</td>";
+
 
 
             $currentDay++;

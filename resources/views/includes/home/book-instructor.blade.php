@@ -8,15 +8,15 @@
 
 
 
-<div class="container px-0 px-sm-3">
-  <div class="card hb-card mt-4">
+<div class="container book-instructor-container   px-0 px-sm-3">
+  <div class="card hb-card book-instructor mt-4">
     <div class="card-header hb-header d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-2">
         <i class="fa fa-snowflake-o"></i>
         <strong>Κράτηση Μαθήματος</strong>
       </div>
-     
     </div>
+    <div class="underline underline-booking"></div>
 
     <div class="card-body">
 
@@ -75,7 +75,7 @@
       </div>
 
       {{-- STEP 2 --}}
-      <form id="hb-final" method="POST" action="{{ route('home.book') }}" class="mt-4 d-none hb-ghost p-3 rounded-3">
+      <form id="hb-final" method="POST" action="{{ route('home.book') }}" class="mt-4 d-none  p-3 rounded-3">
         @csrf
         <input type="hidden" name="selected_date" id="hb-final-date" value="">
         <input type="hidden" name="mountain_id"   id="hb-final-mountain" value="">

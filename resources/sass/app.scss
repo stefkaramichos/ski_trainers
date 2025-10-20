@@ -15,6 +15,8 @@ body {
     background-color: #f5f5f5;
 }
 
+
+
 /* Booking Section */
 .booking-section {
     display: flex;
@@ -62,6 +64,11 @@ body {
     height: 4px;
     background-color: #fdd835; /* Yellow */
     margin-bottom: 20px;
+}
+.underline-booking {
+    position: relative;
+    left: 18px;
+    bottom:13px;
 }
 
 .text-container p {
@@ -270,12 +277,19 @@ body {
     color: black; /* Darker color for active link */
     font-weight:600;
 }
+
+.card-header{
+    font-size: 22px;
+    color: #404040;
+    font-weight: bolder;
+}
+
 .availability {
 
-    .card-header{
-        background-color: #21252a !important;
-        color: #fff !important;
-    }
+    // .card-header{
+    //     background-color: #21252a !important;
+    //     color: #fff !important;
+    // }
 
     .btn-link{
         width: 44px;
@@ -467,29 +481,75 @@ body {
   }
 
    .page-loader {
-    position: fixed;
-    inset: 0;
-    background: rgba(255,255,255,0.6); /* transparent white overlay */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1055;
-    transition: opacity 0.25s ease;
-    opacity: 0;
-    pointer-events: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(255,255,255,0.6); /* transparent white overlay */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1055;
+        transition: opacity 0.25s ease;
+        opacity: 0;
+        pointer-events: none;
     }
 
     .page-loader.active {
-    opacity: 1;
-    pointer-events: all;
+        opacity: 1;
+        pointer-events: all;
     }
 
     .loader-gif {
-    width: 120px;
+        width: 120px;
+    }
+
+    .edit-profile{
+        background: linear-gradient(to right, #0d1118, #1b2436);
+        color: #ccc;
+
+        @media(min-width:767px){
+            padding: 100px;
+        }
+    }
+
+    .book-instructor{
+        background: #1b2436;
+        // background: linear-gradient(to right, #0d1118, #1b2436);
+        color: #ccc;
+        box-shadow: 0 5px 15px rgb(0 0 0 / 22%);
+
+        .hb-stepper .line {
+            background: #ccc;
+        }
+        .btn-primary {
+            background: #fdd835;
+            // background: linear-gradient(to right, #fdd835, #f6f7f7);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+         .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(37, 117, 252, 0.4);
+        }
+        .card-header{
+
+            padding: 17px;
+
+            strong,i{
+                color: #404040;
+            }
+        }
+
+    }
+    .ski-instructor-header{
+        background: linear-gradient(to right, #0d1118, #1b2436);
     }
 
     .main-login-form {
         background-color: #0d1118;
+        background: linear-gradient(to right, #0d1118, #1b2436);
         // background: linear-gradient(135deg, #0d1118, #fdd835);
         min-height: 100vh;
         display: flex;
@@ -583,4 +643,45 @@ body {
     }
     .auth-page .nav-link:hover {
         color: #fdd835 !important;
+    }
+
+    .navbar-brand {
+        letter-spacing: 1px;
+        transition: color 0.3s ease;
+    }
+    .navbar-brand:hover {
+        color: var(--bs-warning);
+        text-shadow: 0 0 6px rgba(255, 193, 7, 0.4);
+    }
+
+    .nav-link {
+        transition: all 0.2s ease-in-out;
+    }
+    .nav-link:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .active-link {
+        background-color: var(--bs-primary);
+        color: #fff !important;
+        border-radius: 8px;
+    }
+
+    .dropdown-menu a:hover {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .book-instructor-container{
+        margin-top: 40px;
+    }
+
+    #time-wrap{
+        border: #a2a2a2 1px solid;
+        border-radius: 10px;
+        margin: 20px auto;
+        padding: 20px;
+
+        form{
+            margin-bottom: 0px;
+        }
     }

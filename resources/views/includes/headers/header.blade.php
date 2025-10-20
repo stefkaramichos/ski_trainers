@@ -1,45 +1,62 @@
-<nav class="navbar navbar-expand-md 
-    {{ Request::is('login') || Request::is('register') ? 'navbar-dark bg-dark shadow-sm border-0' : 'navbar-light bg-white shadow-sm' }}">
-    <div class="container">
-        <a class="navbar-brand text-uppercase fw-bold {{ Request::is('login') || Request::is('register') ? 'text-warning' : '' }}" href="{{ url('/') }}">
+<nav class="navbar ski-instructor-header navbar-expand-md 
+    {{ !Auth::user() ? 'navbar-dark bg-dark shadow-sm border-0' : 'navbar-light bg-white shadow-sm' }}">
+    <div class="container py-2">
+        <!-- Brand -->
+        <a class="navbar-brand text-uppercase fw-bold fs-4 d-flex align-items-center gap-2
+            {{ Request::is('login') || Request::is('register') ? 'text-warning' : 'text-primary' }}"
+            href="{{ url('/') }}">
+            <i class="bi bi-lightning-charge-fill"></i>
             {{ config('app.name', 'Laravel') }}
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+
+        <!-- Toggle button -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
             <span class="navbar-toggler-icon"></span>
         </button>
 
+        <!-- Navbar content -->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <!-- Left Side -->
             <ul class="navbar-nav me-auto"></ul>
 
-            <!-- Right Side -->
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-center">
                 @guest
                     @if (Route::has('login'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::is('login') ? 'text-light' : '' }}" href="{{ route('login') }}">{{ __('Login') }}</a>
+                        <li class="nav-item mx-1">
+                            <a class="nav-link px-3 rounded {{ Request::is('login') ? 'active-link' : '' }}"
+                                href="{{ route('login') }}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>{{ __('Login') }}
+                            </a>
                         </li>
                     @endif
                     @if (Route::has('register'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Request::is('register') ? 'text-light' : '' }}" href="{{ route('register') }}">{{ __('Register') }}</a>
+                        <li class="nav-item mx-1">
+                            <a class="nav-link px-3 rounded {{ Request::is('register') ? 'active-link' : '' }}"
+                                href="{{ route('register') }}">
+                                <i class="bi bi-person-plus me-1"></i>{{ __('Register') }}
+                            </a>
                         </li>
                     @endif
                 @else
-                    <li class="nav-item dropdown">
-                        <a id="navbarDropdown" class="nav-link dropdown-toggle {{ Request::is('login') || Request::is('register') ? 'text-light' : '' }}" href="#" role="button"
-                           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                            {{ Auth::user()->name }}
+                    <li class="nav-item dropdown mx-1">
+                        <a id="navbarDropdown"
+                           class="nav-link dropdown-toggle text-light d-flex align-items-center gap-2
+                           {{ Request::is('login') || Request::is('register') ? 'text-light' : '' }}"
+                           href="#" role="button" data-bs-toggle="dropdown"
+                           aria-haspopup="true" aria-expanded="false" v-pre>
+                            <i class="bi bi-person-circle fs-5"></i> {{ Auth::user()->name }}
                         </a>
 
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="{{ route('profile', Auth::user()->id) }}">
-                                {{ __('auth.my_profile') }}
+                        <div class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0"
+                             aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item py-2" href="{{ route('profile', Auth::user()->id) }}">
+                                <i class="bi bi-person-lines-fill me-2"></i>{{ __('auth.my_profile') }}
                             </a>
-                            <a class="dropdown-item" href="{{ route('logout') }}"
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item py-2 text-danger" href="{{ route('logout') }}"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                {{ __('Logout') }}
+                                <i class="bi bi-box-arrow-right me-2"></i>{{ __('Logout') }}
                             </a>
 
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
