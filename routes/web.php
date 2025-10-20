@@ -17,6 +17,7 @@ Route::get('/', function () {
 
 Auth::routes();
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/mountain-forecast/{id}', [HomeController::class, 'getMountainForecast'])->name('mountain.forecast'); 
 Route::get('/home', [HomeController::class, 'index'])->name('dashboard'); // or 'home.index'
 Route::get('/mountain/{mountain}', [App\Http\Controllers\MountainsController::class, 'mountain'])->name('mountain');
 Route::any('/profile/{user}', [App\Http\Controllers\ProfilesController::class, 'profile'])->name('profile');

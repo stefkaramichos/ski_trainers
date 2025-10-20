@@ -706,3 +706,14 @@ body {
             }
         } 
     }
+
+    .weather-container{
+        background:#1b2436; 
+        color:#fff; 
+        width:100%;
+
+        .weather-mountain{
+            background:#222b40;
+            box-shadow:0 6px 20px rgba(0,0,0,0.35);
+        }
+    }
