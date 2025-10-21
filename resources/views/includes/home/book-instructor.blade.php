@@ -6,7 +6,7 @@
   $mountains  = \App\Models\Mountain::orderBy('mountain_name')->get(['id','mountain_name']);
 @endphp
 
-<div class="container book-instructor-container px-0 px-sm-3">
+<div class="container book-instructor-container px-0 px-sm-3" id="book-instructor-container">
   <div class="card hb-card book-instructor mt-4">
     <div class="card-header hb-header d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-2">

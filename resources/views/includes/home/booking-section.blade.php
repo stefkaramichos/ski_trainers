@@ -5,7 +5,7 @@
         <h1>{{__('auth.kleiste_mathima')}}</h1>
         <div class="underline"></div>
         <p>{{__('auth.kleiste_mathima_text')}}</p>
-        <button class="booking-btn">BOOKING</button>
+        <a href="#book-instructor-container" class="booking-btn">BOOKING</a>
     </div>
 
     <div class="image-container">

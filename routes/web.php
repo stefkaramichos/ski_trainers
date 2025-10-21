@@ -21,7 +21,7 @@ Route::get('/mountain-forecast/{id}', [HomeController::class, 'getMountainForeca
 Route::get('/home', [HomeController::class, 'index'])->name('dashboard'); // or 'home.index'
 Route::get('/mountain/{mountain}', [App\Http\Controllers\MountainsController::class, 'mountain'])->name('mountain');
 Route::any('/profile/{user}', [App\Http\Controllers\ProfilesController::class, 'profile'])->name('profile');
-Route::any('/admin_trainers', [App\Http\Controllers\AdminTrainersController::class, 'admin_trainers'])->name('admin.trainers');
+Route::any('/admin/admin_trainers', [App\Http\Controllers\AdminTrainersController::class, 'admin_trainers'])->name('admin.trainers');
 Route::post('/update-user-status', [AdminTrainersController::class, 'updateStatus'])->name('updateUserStatus');
 Route::post('/delete-user', [AdminTrainersController::class, 'deleteUser'])->name('deleteUser');
 Route::get('/profile/{user}/date', [ProfilesController::class, 'profile_date'])->name('profile.date');

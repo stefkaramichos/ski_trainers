@@ -1,6 +1,7 @@
 <section class="weather-container mt-5">
     <div class="container py-5"> 
-        <h2 class="text-center mb-4">Καιρός στα Βουνά</h2>
+        <h2 class=" mb-4"><strong>🌤 Καιρός στα Βουνά</strong></h2>
+        <div class="underline underline-booking"></div>
 
         @if(isset($mountains) && $mountains->count())
             <div class="row g-4">
