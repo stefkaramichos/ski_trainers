@@ -41,7 +41,7 @@ class AvailabilityController extends Controller
 
         // 2) Base times (09:00–15:00)
         $baseTimes = [];
-        for ($h = 9; $h <= 15; $h++) {
+        for ($h = 7; $h <= 15; $h++) {
             $baseTimes[] = sprintf('%02d:00', $h);
         }
 

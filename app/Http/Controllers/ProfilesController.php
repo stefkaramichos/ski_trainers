@@ -569,7 +569,7 @@ class ProfilesController extends Controller
     private function build_time_selection(User $user)
     {
         $times = [];
-        for ($i = 9; $i <= 15; $i++) { // 09:00 to 15:00
+        for ($i = 7; $i <= 15; $i++) { // 09:00 to 15:00
             $times[] = sprintf('%02d:00', $i);
         }
 
