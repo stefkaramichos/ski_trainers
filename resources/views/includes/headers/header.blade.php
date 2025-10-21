@@ -50,13 +50,31 @@
 
                         <div class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0"
                              aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item py-2" href="{{ route('profile', Auth::user()->id) }}">
+                            <a 
+                                href="{{ Auth::user()->status === 'D' ? '#' : route('profile', Auth::user()->id) }}" 
+                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}"
+                                @if(Auth::user()->status === 'D')
+                                    style="pointer-events: none; opacity: 0.6; cursor: not-allowed;"
+                                    title="το προφίλ σας είναι απενεργοποιημένο"
+                                @endif
+                            >
                                 <i class="bi bi-person-lines-fill me-2"></i>{{ __('auth.my_profile') }}
                             </a>
-                            <a class="dropdown-item py-2" href="{{ route('profile.date', Auth::user()->id) }}">
-                                <img width="12" src="{{ asset('storage/calendar.png') }}" alt="ski icon"> Το Πρόγραμμά μου
+
+                            <a 
+                                href="{{ Auth::user()->status === 'D' ? '#' : route('profile.date', Auth::user()->id) }}" 
+                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}"
+                                @if(Auth::user()->status === 'D')
+                                    style="pointer-events: none; opacity: 0.6; cursor: not-allowed;"
+                                    title="το προφίλ σας είναι απενεργοποιημένο"
+                                @endif
+                            >
+                                <img width="12" src="{{ asset('storage/calendar.png') }}" alt="ski icon" class="me-2">
+                                Το Πρόγραμμά μου
                             </a>
+
                             <div class="dropdown-divider"></div>
+
                             <a class="dropdown-item py-2 text-danger" href="{{ route('logout') }}"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 <i class="bi bi-box-arrow-right me-2"></i>{{ __('Logout') }}
