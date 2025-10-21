@@ -53,6 +53,9 @@
                             <a class="dropdown-item py-2" href="{{ route('profile', Auth::user()->id) }}">
                                 <i class="bi bi-person-lines-fill me-2"></i>{{ __('auth.my_profile') }}
                             </a>
+                            <a class="dropdown-item py-2" href="{{ route('profile.date', Auth::user()->id) }}">
+                                <img width="12" src="{{ asset('storage/calendar.png') }}" alt="ski icon"> Το Πρόγραμμά μου
+                            </a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item py-2 text-danger" href="{{ route('logout') }}"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
