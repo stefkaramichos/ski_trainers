@@ -60,8 +60,8 @@
                 <select id="description"
                         class="form-control @error('description') is-invalid @enderror"
                         name="description" required>
-                    <option value="Προπονητής Σκι" {{ old('description') === 'Προπονητής Σκι' ? 'selected' : '' }}>Προπονητής Σκι</option>
-                    <option value="Προπονητής Snowboard" {{ old('description') === 'Προπονητής Snowboard' ? 'selected' : '' }}>Προπονητής Snowboard</option>
+                    <option value="sk" {{ old('description') === 'sk' ? 'selected' : '' }}>Προπονητής Σκι</option>
+                    <option value="sn" {{ old('description') === 'sn' ? 'selected' : '' }}>Προπονητής Snowboard</option>
                 </select>
                 @error('description')
                     <span class="invalid-feedback" role="alert">

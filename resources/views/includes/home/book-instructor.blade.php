@@ -1,14 +1,12 @@
 {{-- resources/views/partials/home-booking-2step.blade.php --}}
 @php
   \Carbon\Carbon::setLocale('el');
-  $today     = now()->format('Y-m-d');
-  $todayHuman= \Carbon\Carbon::parse($today)->translatedFormat('l d-m-Y');
-  $mountains = \App\Models\Mountain::orderBy('mountain_name')->get(['id','mountain_name']);
+  $today      = now()->format('Y-m-d');
+  $todayHuman = \Carbon\Carbon::parse($today)->translatedFormat('l d-m-Y');
+  $mountains  = \App\Models\Mountain::orderBy('mountain_name')->get(['id','mountain_name']);
 @endphp
 
-
-
-<div class="container book-instructor-container   px-0 px-sm-3">
+<div class="container book-instructor-container px-0 px-sm-3">
   <div class="card hb-card book-instructor mt-4">
     <div class="card-header hb-header d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-2">
@@ -35,7 +33,7 @@
 
       {{-- STEP 1 --}}
       <div class="row g-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label fw-semibold"><i class="fa fa-calendar"></i> Ημερομηνία*</label>
           <input type="date" id="hb-date" class="form-control" value="{{ $today }}" min="{{ $today }}" required>
           <small class="text-muted">
@@ -43,13 +41,22 @@
           </small>
         </div>
 
-        <div class="col-md-5">
+        <div class="col-md-3">
           <label class="form-label fw-semibold"><i class="fa fa-mountain"></i> Χιονοδρομικό*</label>
           <select id="hb-mountain" class="form-select" required>
             <option value="">— Επιλέξτε —</option>
             @foreach($mountains as $m)
               <option value="{{ $m->id }}">{{ $m->mountain_name }}</option>
             @endforeach
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold"><i class="fa fa-flag-checkered"></i> Άθλημα*</label>
+          <select id="hb-discipline" class="form-select" required>
+            <option value="">— Επιλέξτε —</option>
+            <option value="sk">Ski</option>
+            <option value="sn">Snowboard</option>
           </select>
         </div>
 
@@ -75,11 +82,12 @@
       </div>
 
       {{-- STEP 2 --}}
-      <form id="hb-final" method="POST" action="{{ route('home.book') }}" class="mt-4 d-none  p-3 rounded-3">
+      <form id="hb-final" method="POST" action="{{ route('home.book') }}" class="mt-4 d-none p-3 rounded-3">
         @csrf
         <input type="hidden" name="selected_date" id="hb-final-date" value="">
         <input type="hidden" name="mountain_id"   id="hb-final-mountain" value="">
         <input type="hidden" name="selected_time" id="hb-final-time" value="">
+        <input type="hidden" name="discipline"    id="hb-final-discipline" value="">
 
         {{-- toast-style feedback via SweetAlert2 --}}
         @if($errors->any())
@@ -129,7 +137,8 @@
               <span class="ms-1">Έχετε επιλέξει:
                 <strong id="hb-summary-date">—</strong>,
                 <strong id="hb-summary-mountain">—</strong>,
-                <strong id="hb-summary-time">—</strong>
+                <strong id="hb-summary-time">—</strong>,
+                <strong id="hb-summary-discipline">—</strong>
               </span>
             </div>
           </div>
@@ -182,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const dateEl    = document.getElementById('hb-date');
   const dateTxt   = document.getElementById('hb-date-human');
   const mntEl     = document.getElementById('hb-mountain');
+  const dscEl     = document.getElementById('hb-discipline');
   const timeEl    = document.getElementById('hb-time');
   const timeSpin  = document.getElementById('hb-time-spinner');
   const nextBtn   = document.getElementById('hb-next');
@@ -190,10 +200,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const finalDate = document.getElementById('hb-final-date');
   const finalMnt  = document.getElementById('hb-final-mountain');
   const finalTime = document.getElementById('hb-final-time');
+  const finalDisc = document.getElementById('hb-final-discipline');
 
   const sumDate   = document.getElementById('hb-summary-date');
   const sumMnt    = document.getElementById('hb-summary-mountain');
   const sumTime   = document.getElementById('hb-summary-time');
+  const sumDisc   = document.getElementById('hb-summary-discipline');
 
   function toHuman(ymd) {
     if (!ymd) return '';
@@ -211,9 +223,10 @@ document.addEventListener('DOMContentLoaded', function () {
   async function loadTimes() {
     const mountain_id   = mntEl.value;
     const selected_date = dateEl.value;
+    const discipline    = dscEl.value;
 
     resetTimes(true);
-    if (!mountain_id || !selected_date) {
+    if (!mountain_id || !selected_date || !discipline) {
       resetTimes(false);
       return;
     }
@@ -226,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ mountain_id, selected_date })
+        body: JSON.stringify({ mountain_id, selected_date, discipline })
       });
       const data = await res.json();
 
@@ -262,6 +275,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadTimes();
   });
   mntEl.addEventListener('change', loadTimes);
+  dscEl.addEventListener('change', loadTimes);
 
   // enable next when a time chosen
   timeEl.addEventListener('change', () => {
@@ -273,10 +287,12 @@ document.addEventListener('DOMContentLoaded', function () {
     finalDate.value = dateEl.value;
     finalMnt.value  = mntEl.value;
     finalTime.value = timeEl.value;
+    finalDisc.value = dscEl.value;
 
     sumDate.textContent = toHuman(dateEl.value);
     sumMnt.textContent  = mntEl.options[mntEl.selectedIndex]?.text || '';
     sumTime.textContent = timeEl.value || '';
+    sumDisc.textContent = dscEl.value === 'sk' ? 'Ski' : (dscEl.value === 'sn' ? 'Snowboard' : '—');
 
     // visual stepper update
     const bullets = document.querySelectorAll('.hb-stepper .bullet');

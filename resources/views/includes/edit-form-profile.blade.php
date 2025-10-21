@@ -55,8 +55,8 @@
     
         <div class="col-md-6">
             <select id="description" class="form-control @error('description') is-invalid @enderror" name="description" required>
-                <option value="Προπονητής Σκι" @if ($user->description == 'Προπονητής Σκι') selected @endif>Προπονητής Σκι</option>
-                <option value="Προπονητής Snowboard" @if ($user->description == 'Προπονητής Snowboard') selected @endif>Προπονητής Snowboard</option>
+                <option value="sk" @if ($user->description == 'sk') selected @endif>Προπονητής Σκι</option>
+                <option value="sn" @if ($user->description == 'sn') selected @endif>Προπονητής Snowboard</option>
             </select>
 
             @error('description')
