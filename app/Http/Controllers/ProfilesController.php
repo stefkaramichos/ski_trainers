@@ -295,6 +295,32 @@ class ProfilesController extends Controller
             ->get()
             ->keyBy(fn($b) => substr($b->selected_time, 0, 5));
 
+        
+        $claimsByTime = \App\Models\BookingClaim::query()
+            ->where('instructor_id', $user->id)
+            ->whereNull('claimed_at')
+            ->whereNull('invalidated_at')
+            ->whereHas('booking', function ($q) use ($currentSelectedDate) {
+                $q->where('selected_date', $currentSelectedDate)
+                ->where('status', 'pending');
+            })
+            ->with(['booking:id,selected_time']) // we only need time
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'time'        => substr($c->booking->selected_time, 0, 5), // 'H:i'
+                    'booking_id'  => $c->booking_id,
+                    'token'       => $c->token,
+                ];
+            })
+            ->groupBy('time')
+            ->map(fn($group) => [
+                'booking' => $group->first()['booking_id'],
+                'token'   => $group->first()['token'],
+            ])
+            ->all();
+
+
         $session = Session::get('selected_datetimes', ['dates' => [], 'times' => []]);
         $sessionDatetimesAll = [];
         foreach ($session['dates'] as $i => $date) {
@@ -317,7 +343,8 @@ class ProfilesController extends Controller
             'dbDatetimesForSelectedDate'      => $dbDatetimesForSelectedDate,
             'sessionDatetimesForSelectedDate' => $sessionDatetimesForSelectedDate,
             'sessionDatetimesAll'             => $sessionDatetimesAll,
-            'bookingsByTime'                  => $bookingsByTime, 
+            'bookingsByTime'                  => $bookingsByTime,
+            'claimsByTime'               => $claimsByTime,  
         ]);
     } elseif ($accessLevel == 'U') {
 
@@ -481,12 +508,41 @@ class ProfilesController extends Controller
             ->get()
             ->keyBy(fn($b) => substr($b->selected_time, 0, 5));
 
+        
+        // Claims for THIS instructor on THIS date, still active (not claimed/invalidated)
+        $claimsByTime = \App\Models\BookingClaim::query()
+            ->where('instructor_id', $user->id)
+            ->whereNull('claimed_at')
+            ->whereNull('invalidated_at')
+            ->whereHas('booking', function ($q) use ($date) {
+                $q->where('selected_date', $date)
+                ->where('status', 'pending');
+            })
+            ->with(['booking:id,selected_time'])
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'time'        => substr($c->booking->selected_time, 0, 5),
+                    'booking_id'  => $c->booking_id,
+                    'token'       => $c->token,
+                ];
+            })
+            ->groupBy('time')
+            ->map(fn($group) => [
+                'booking' => $group->first()['booking_id'],
+                'token'   => $group->first()['token'],
+            ])
+            ->all();
+
+
+
 
         $dbListHtml = view('partials.db-datetimes-list', [
                 'dbDatetimesForSelectedDate' => $dbDatetimesForSelectedDate,
                 'currentSelectedDate'        => $date,
                 'user'                       => $user,
                 'bookingsByTime'             => $bookingsByTime, // ← add this
+                'claimsByTime'   => $claimsByTime,
             ])->render();
 
 
@@ -494,6 +550,7 @@ class ProfilesController extends Controller
         $sessionListHtml = view('partials.session-datetimes-list', [
             'sessionDatetimesAll' => $sessionDatetimesAll,
             'user' => $user, // for the Save All form route
+
         ])->render();
 
         return response()->json([
@@ -503,6 +560,7 @@ class ProfilesController extends Controller
             'timeSelection'    => $timeSelection,
             'dbListHtml'       => $dbListHtml,
             'sessionListHtml'  => $sessionListHtml,
+            'claimsByTime'   => $claimsByTime,
         ]);
     }
 
@@ -603,7 +661,7 @@ class ProfilesController extends Controller
 
         // Clear session picks
         Session::forget('selected_datetimes');
-        Session::forget('last_selected_date');
+        // Session::forget('last_selected_date');
 
         return back()->with('success', 'Οι διαθεσιμότητες καταχωρήθηκαν επιτυχώς');
     }

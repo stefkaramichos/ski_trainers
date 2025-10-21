@@ -503,7 +503,7 @@ body {
     }
 
     .edit-profile{
-        background: linear-gradient(to right, #0d1118, #1b2436);
+        background: #1b2436;
         color: #ccc;
 
         @media(min-width:767px){
@@ -673,6 +673,10 @@ body {
 
     .book-instructor-container{
         margin-top: 40px;
+
+        small.text-muted{
+            color: #ccc !important;
+        }
     }
 
     #time-wrap{

@@ -9,6 +9,8 @@
   @forelse ($dbDatetimesForSelectedDate as $item)
     @php
       $timeHi = substr($item->selected_time, 0, 5);
+
+      // existing booking lookup...
       $bk = null;
       if (isset($bookingsByTime)) {
         if ($bookingsByTime instanceof \Illuminate\Support\Collection) {
@@ -17,12 +19,26 @@
           $bk = $bookingsByTime[$timeHi] ?? null;
         }
       }
+
+      // NEW: claim payload for this time (if any)
+      $claimPayload = $claimsByTime[$timeHi] ?? null;
     @endphp
 
     <li id="saved-item-{{ $item->id }}"
         class="list-group-item font-s-16 d-flex justify-content-between align-items-center {{ $item->is_reserved ? 'is_reserved' : '' }}">
       <div class="d-flex align-items-center gap-2">
         <span>{{ $timeHi }}</span>
+
+        {{-- show paper-plane if a claim was sent and it’s not yet reserved --}}
+        @if(!$item->is_reserved && $claimPayload)
+          <a
+            class="ms-1"
+            title="Κατοχυρώστε την κράτηση"
+            href="{{ route('booking.claim', ['booking' => $claimPayload['booking'], 'token' => $claimPayload['token']]) }}"
+          >
+            <i class="fa fa-paper-plane text-warning" aria-hidden="true"></i>
+          </a>
+        @endif
       </div>
 
       <div class="d-flex gap-2">
@@ -77,7 +93,6 @@
               <div><strong>Επίπεδο:</strong> {{ e($bk->level ?? '—') }}</div>
             </div>
           </template>
-
         @endif
       </div>
     </li>
@@ -87,6 +102,7 @@
     </li>
   @endforelse
 </ul>
+
 <script>
 /**
  * Vanilla sticky popovers that read content from <template id="...">.
@@ -148,10 +164,7 @@ window.initPopoverHover = function (root) {
         createTip();
         tip.setAttribute('data-hidden', 'false');
         tip.style.display = 'block';
-        // measure after render
-        requestAnimationFrame(() => {
-          positionTip();
-        });
+        requestAnimationFrame(positionTip);
         showTimer = null;
       }, ENTER_DELAY);
     }
@@ -171,20 +184,17 @@ window.initPopoverHover = function (root) {
       }, LEAVE_DELAY);
     }
 
-    // Trigger listeners
     trigger.addEventListener('mouseenter', () => { overTrigger = true; show(); });
     trigger.addEventListener('mouseleave', () => { overTrigger = false; queueHide(); });
     trigger.addEventListener('focus',      () => { overTrigger = true; show(); });
     trigger.addEventListener('blur',       () => { overTrigger = false; queueHide(); });
 
-    // Reposition on env changes
     const onReflow = () => { if (tip && tip.getAttribute('data-hidden') !== 'true') positionTip(); };
     window.addEventListener('scroll', onReflow, true);
     window.addEventListener('resize', onReflow, true);
   });
 };
 
-// run once, and call again after you replace HTML via AJAX
 document.addEventListener('DOMContentLoaded', () => {
   if (window.initPopoverHover) window.initPopoverHover(document);
 });

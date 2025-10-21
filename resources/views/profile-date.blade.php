@@ -56,9 +56,11 @@
                             {{-- Saved (green) list --}}
                             <div id="db-wrap">
                                 @include('partials.db-datetimes-list', [
-                                'dbDatetimesForSelectedDate' => $dbDatetimesForSelectedDate,
-                                'currentSelectedDate' => $currentSelectedDate ?? null,
-                                'user' => $user,  {{-- needed so the partial can build /profile/{user}/delete-saved --}}
+                                  'dbDatetimesForSelectedDate' => $dbDatetimesForSelectedDate,
+                                  'currentSelectedDate'        => $currentSelectedDate ?? null,
+                                  'user'                       => $user,
+                                  'bookingsByTime'             => $bookingsByTime ?? [],
+                                  'claimsByTime'               => $claimsByTime  ?? [],   // 👈 pass it
                                 ])
 
                             </div>
