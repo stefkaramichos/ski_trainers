@@ -617,7 +617,7 @@ class ProfilesController extends Controller
                 name='selected_time'
                 title= 'Καταχωρείστε νέα ώρα'
                 value='{$time}'
-                class='btn button-shandow-st btn-outline-primary m-2 {$disabledClass}'
+                class='btn button-shandow-st btn-outline-primary m-1 m-md-2 {$disabledClass}'
                 {$disabledAttr}
                 data-date='{$selectedDate}'
                 data-time='{$time}'

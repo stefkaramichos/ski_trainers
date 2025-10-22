@@ -1,5 +1,5 @@
 
-<section class="booking-section" style="background: url('{{ asset('storage/bg_img_234.jpg') }}') center/cover no-repeat;">
+<section class="booking-section" style="background: url('{{ asset('storage/bg_img_234.jpg') }}') right/cover no-repeat;">
     <div class="text-container">
         <h5>{{__('auth.proponites_ski')}}</h5>
         <h1>{{__('auth.kleiste_mathima')}}</h1>

@@ -1,4 +1,4 @@
-<nav class="navbar ski-instructor-header navbar-expand-md 
+<nav class="navbar ski-instructor-header navbar-dark bg-dark  navbar-expand-md 
     {{ !Auth::user() ? 'navbar-dark bg-dark shadow-sm border-0' : 'navbar-light bg-white shadow-sm' }}">
     <div class="container py-2">
         <!-- Brand -->

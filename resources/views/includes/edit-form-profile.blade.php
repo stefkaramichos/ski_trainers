@@ -1,4 +1,4 @@
-<form method="POST" action="{{ route('profile', $user->id) }}" enctype="multipart/form-data">
+<form method="POST" action="{{ route('profile', $user->id) }}" enctype="multipart/form-data" class="p-3">
     @csrf
 
     <div class="row mb-3">
