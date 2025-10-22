@@ -17,7 +17,7 @@
                         <i class="fa-solid fa-person-chalkboard me-2 text-warning"></i>
                         Αν έχεις εμπειρία και πάθος για τη διδασκαλία, μπορείς να προσεγγίσεις νέους μαθητές εύκολα και άμεσα.  
                         <br><i class="fa-solid fa-skiing me-2 text-warning"></i>
-                        Δημιούργησε το προφίλ σου, όρισε τη διαθεσιμότητα και τις τιμές σου.  
+                        Δημιούργησε το προφίλ σου, όρισε τη διαθεσιμότητα σου.  
                         <br><i class="fa-solid fa-handshake me-2 text-warning"></i>
                         Οι μαθητές σε βρίσκουν, κάνουν κράτηση online και εσύ λαμβάνεις επιβεβαίωση άμεσα.
                     </p>
@@ -29,7 +29,7 @@
 
                     <!-- Εικόνα -->
                 <div class="col-md-6 p-3">
-                    <img src="{{ asset('storage/ski-coach.jpg')}}" alt="Ski Coach" class="img-fluid rounded-4 shadow-sm">
+                    <img src="{{ asset('storage/ski-lift.jpg')}}" alt="Ski Coach" class="img-fluid rounded-4 shadow-sm">
                 </div>
             </div>
         </div>

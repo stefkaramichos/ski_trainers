@@ -7,17 +7,20 @@
 @endphp
 
 <div class="container book-instructor-container px-0 px-sm-3" id="book-instructor-container">
+  <div class="d-flex book-instructor-title align-items-center gap-2">
+        <i class="fa fa-snowflake-o"></i>
+        <strong>Κράτηση Μαθήματος</strong>
+  </div>
+  <div class="underline"></div>
+
   <div class="card hb-card book-instructor mt-4">
     <div class="card-header hb-header d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-2">
-        <i class="fa fa-snowflake-o"></i>
-        <strong>Κράτηση Μαθήματος</strong>
+        Συμπληρώστε την φόρμα κράτησης
       </div>
     </div>
-    <div class="underline underline-booking"></div>
 
     <div class="card-body">
-
       {{-- tiny stepper --}}
       <div class="hb-stepper d-flex align-items-center gap-3 mb-4">
         <div class="step">

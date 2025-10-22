@@ -4,7 +4,7 @@
       
       <!-- Image Side -->
       <div class="col-md-6 text-section-image p-3">
-        <img src="{{ asset('storage/pro-skier.jpg')}}" alt="Pro Skier" class="img-fluid rounded-4 shadow-lg">
+        <img src="{{ asset('storage/ski-lift.jpg')}}" alt="Pro Skier" class="img-fluid rounded-4 shadow-lg">
       </div>
       
       <!-- Text Side -->

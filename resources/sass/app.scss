@@ -79,22 +79,19 @@ body {
 
 /* Booking Button */
 .booking-btn {
-    display: inline-block;
-    padding: 12px 25px;
-    background-color: #1E40AF;
-    color: white;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-    text-transform: uppercase;
-    text-decoration: none;
+     background: #fdd835;
+            color: #1b2435;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+
+            &:hover {
+            background: #ffea00;
+            transform: translateY(-2px);
+            }
 }
 
-.booking-btn:hover {
-    background-color: #102f7e;
-}
+
 
 /* Right Side - Image */
 .image-container {
@@ -511,6 +508,17 @@ body {
         }
     }
 
+    .book-instructor-container{
+        > div.book-instructor-title {
+            > strong, > i{
+                color: #404040;
+                font-size: 26px;
+                color: #404040;
+                font-weight: 900;
+            }
+        } 
+    }
+
     .book-instructor{
         background: #1b2436;
         // background: linear-gradient(to right, #0d1118, #1b2436);
@@ -541,7 +549,6 @@ body {
                 color: #404040;
             }
         }
-
     }
     .ski-instructor-header{
         background: linear-gradient(to right, #0d1118, #1b2436);
@@ -775,7 +782,7 @@ body {
     }
 
     .text-section-content h2{
-        font-size: 32px !important;
+        font-size: 26px !important;
         font-weight: bolder !important;
     }
     
@@ -788,7 +795,7 @@ body {
 
         h2{
             text-align: left;
-            font-size: 32px;
+            font-size: 26px;
             color: #404040;
             font-weight: bolder;
             margin-left: 10px;
@@ -934,7 +941,7 @@ html {
   }
 }
     .coach-section-inner h2{
-        font-size: 32px !important;
+        font-size: 26px !important;
         color: #404040;
         font-weight: bolder !important;
     }
