@@ -19,7 +19,7 @@
           Διάλεξε βουνό, ημερομηνία και ώρα - δες άμεσα διαθέσιμους προπονητές
         </h5>
 
-        <p class="lead text-light opacity-90 mb-4">
+        <p class="lead  opacity-90 mb-4">
           <i class="fa-solid fa-mountain-sun me-2 text-warning"></i>
           Κλείσε ιδιαίτερο μάθημα σκι ή snowboard με πιστοποιημένο προπονητή. 
           <br><i class="fa-solid fa-map-location-dot me-2 text-warning"></i>

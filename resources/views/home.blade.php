@@ -8,6 +8,7 @@
     @include('includes.home.book-instructor')
     @include('includes.home.text-section-users')
     @include('includes.home.text-section-instructors')
+    @include('includes.home.text-section-infos')
 
     
 

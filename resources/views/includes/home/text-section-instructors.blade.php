@@ -29,7 +29,7 @@
 
                     <!-- Εικόνα -->
                 <div class="col-md-6 p-3">
-                    <img src="{{ asset('storage/ski-lift.jpg')}}" alt="Ski Coach" class="img-fluid rounded-4 shadow-sm">
+                    <img src="{{ asset('storage/trees-mountain.jpg')}}" alt="Ski Coach" class="img-fluid rounded-4 shadow-sm">
                 </div>
             </div>
         </div>

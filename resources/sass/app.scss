@@ -510,6 +510,16 @@ body {
 
     .book-instructor-container{
         > div.book-instructor-title {
+
+            @media(max-width:767px){
+                margin-left: 40px;
+                
+                + .underline{
+                margin-left: 40px; 
+                }
+            }
+           
+
             > strong, > i{
                 color: #404040;
                 font-size: 26px;
@@ -692,7 +702,7 @@ body {
     .text-section-wrapper {
         background: #1b2435;
         margin-top: 100px;
-        color: #e0e0e0;
+        color: #ccc;
         border-radius: 1.5rem;
         overflow: hidden;
 
@@ -716,7 +726,7 @@ body {
         .text-section-content {
             h2 {
             font-size: 1.9rem;
-            color: #fff;
+            color: #ccc;
             }
 
             h5 {
@@ -944,4 +954,8 @@ html {
         font-size: 26px !important;
         color: #404040;
         font-weight: bolder !important;
+    }
+
+    .text-section-infos-inner{
+        max-width: unset !important;
     }
