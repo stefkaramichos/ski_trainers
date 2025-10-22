@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-center main-login-form align-items-center">
-    <div class="login-card">
+    <div class="login-card m-2">
         <div class="login-header">{{ __('Reset Password 🔐') }}</div>
 
         @if (session('status'))

@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-center main-login-form align-items-center auth-page">
-    <div class="login-card m-1">
+    <div class="login-card m-2">
         <div class="login-header">{{ __('Επαναφορά Κωδικού 🔒') }}</div>
 
         <form method="POST" action="{{ route('password.update') }}">
