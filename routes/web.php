@@ -9,6 +9,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AdminMountainsController;
 use App\Http\Controllers\AdminBookingsController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketMessageController;
 //testgit 
 
 Route::get('/', function () {
@@ -129,4 +131,16 @@ Route::middleware(['auth', \App\Http\Middleware\CheckSuperAdmin::class])->group(
     Route::post('/admin/bookings/status', [AdminBookingsController::class, 'updateStatus'])->name('admin.bookings.status');
     Route::post('/admin/bookings/assign', [AdminBookingsController::class, 'assignInstructor'])->name('admin.bookings.assign');
     Route::post('/admin/bookings/delete', [AdminBookingsController::class, 'delete'])->name('admin.bookings.delete');
+});
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/tickets',             [TicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/create',      [TicketController::class, 'create'])->name('tickets.create');
+    Route::post('/tickets',            [TicketController::class, 'store'])->name('tickets.store');
+    Route::get('/tickets/{ticket}',    [TicketController::class, 'show'])->name('tickets.show');
+    Route::patch('/tickets/{ticket}',  [TicketController::class, 'update'])->name('tickets.update');
+
+    Route::post('/tickets/{ticket}/messages', [TicketMessageController::class, 'store'])
+        ->name('tickets.messages.store');
 });

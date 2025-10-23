@@ -48,4 +48,14 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Mountain::class, 'mountain_user');
     }
+
+    public function tickets()
+    {
+        return $this->hasMany(\App\Models\Ticket::class, 'instructor_id');
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->super_admin === 'Y';
+    }
 }

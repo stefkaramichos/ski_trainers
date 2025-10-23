@@ -1,4 +1,4 @@
-!@#<nav class="navbar ski-instructor-header navbar-dark bg-dark  navbar-expand-md 
+<nav class="navbar ski-instructor-header navbar-dark bg-dark  navbar-expand-md 
     {{ !Auth::user() ? 'navbar-dark bg-dark shadow-sm border-0' : 'navbar-light bg-white shadow-sm' }}">
     <div class="container py-2">
         <!-- Brand -->
@@ -71,6 +71,18 @@
                             >
                                 <img width="12" src="{{ asset('storage/calendar.png') }}" alt="ski icon" class="me-2">
                                 Το Πρόγραμμά μου
+                            </a>
+
+                            <a 
+                                href="{{ Auth::user()->status === 'D' ? '#' : route('tickets.index') }}" 
+                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}"
+                                @if(Auth::user()->status === 'D')
+                                    style="pointer-events: none; opacity: 0.6; cursor: not-allowed;"
+                                    title="το προφίλ σας είναι απενεργοποιημένο"
+                                @endif
+                            >
+                                <i class="bi bi-envelope-fill"></i>
+                                &nbsp;&nbsp;Επικοινωνία
                             </a>
 
                             <div class="dropdown-divider"></div>
