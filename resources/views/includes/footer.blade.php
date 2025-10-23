@@ -24,10 +24,11 @@
       <p>Email: info@ski-lessons.gr</p>
       <p>Phone: +1 (555) 123-4567</p>
       <div class="socials">
-        <a href="#" class="social-icon">🌐</a>
+        ❄️⚪❄️⚪❄️⚪❄️
+        {{-- <a href="#" class="social-icon">🌐</a>
         <a href="#" class="social-icon">🐦</a>
         <a href="#" class="social-icon">📘</a>
-        <a href="#" class="social-icon">📸</a>
+        <a href="#" class="social-icon">📸</a> --}}
       </div>
     </div>
   </div>

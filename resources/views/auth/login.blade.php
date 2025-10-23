@@ -4,7 +4,7 @@
 
 
 <div class=" d-flex justify-content-center  main-login-form align-items-center">
-    <div class="login-card m-1">
+    <div class="login-card m-2">
         <div class="login-header">{{ __('Σύνδεση 👋') }}</div>
 
         <form method="POST" action="{{ route('login') }}">
