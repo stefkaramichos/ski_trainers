@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container py-5 ticket-message">
     <h1>Tickets</h1>
 
     @if(!auth()->user()->isSuperAdmin())

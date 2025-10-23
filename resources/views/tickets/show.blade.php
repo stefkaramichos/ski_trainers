@@ -1,17 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container ticket-message py-5">
     <div class="d-flex justify-content-between align-items-center">
         <h1>Ticket #{{ $ticket->id }} – {{ $ticket->subject }}</h1>
         <form method="POST" action="{{ route('tickets.update', $ticket) }}" class="d-flex gap-2">
             @csrf @method('PATCH')
             @can('update', $ticket)
+            @if(auth()->user()->isSuperAdmin())
             <select name="status" class="form-select">
                 @foreach(['open','pending','resolved','closed'] as $st)
                     <option value="{{ $st }}" @selected($ticket->status===$st)>{{ ucfirst($st) }}</option>
                 @endforeach
             </select>
+            @endif
             <select name="priority" class="form-select">
                 @foreach(['low','normal','high'] as $pr)
                     <option value="{{ $pr }}" @selected($ticket->priority===$pr)>{{ ucfirst($pr) }}</option>

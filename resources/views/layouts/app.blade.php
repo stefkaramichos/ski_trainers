@@ -51,7 +51,46 @@
     )
         @include('includes.footer')
     @endif
+ {{-- toast-style feedback via SweetAlert2 --}}
+        @if($errors->any())
+          <script>
+            document.addEventListener('DOMContentLoaded', function () {
+              Swal.fire({
+                position: 'top-end',
+                icon: 'error',
+                title: 'Σφάλμα!',
+                html: `
+                  <ul style="text-align:left;margin:0;padding-left:18px">
+                    @foreach($errors->all() as $err)
+                      <li>{{ $err }}</li>
+                    @endforeach
+                  </ul>
+                `,
+                showConfirmButton: false,
+                timer: 5500,
+                timerProgressBar: true,
+                toast: true
+              });
+            });
+          </script>
+        @endif
 
+        @if(session('success'))
+          <script>
+            document.addEventListener('DOMContentLoaded', function () {
+              Swal.fire({
+                position: 'top-end',
+                icon: 'success',
+                title: 'Επιτυχία!',
+                text: '{{ session('success') }}',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                toast: true
+              });
+            });
+          </script>
+        @endif
     <!-- Global page loader -->
     @include('includes.page-loader')
     @stack('scripts')
