@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container py-5 ticket-message">
     <h1>Open Ticket</h1>
     <form method="POST" action="{{ route('tickets.store') }}">
         @csrf
