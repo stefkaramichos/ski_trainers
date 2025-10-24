@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Mountain;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class AdminMountainsController extends Controller
 {
@@ -20,6 +21,7 @@ class AdminMountainsController extends Controller
 
             $validated = $request->validate([
                 'mountain_name' => 'required|string|max:255|unique:mountains,mountain_name',
+                'slug'          => 'nullable|string|max:255|unique:mountains,slug',
                 'latitude'      => 'required|numeric|between:-90,90',
                 'longitude'     => 'required|numeric|between:-180,180',
                 'description'   => 'nullable|string',
@@ -27,12 +29,25 @@ class AdminMountainsController extends Controller
                 'image_2'       => 'nullable|image|max:4096',
             ]);
 
+            // Generate slug if not provided
+            $slug = $validated['slug'] ?? null;
+            if (!$slug || trim($slug) === '') {
+                $slug = Str::slug($validated['mountain_name'], '-');
+                // make sure slug is unique; if exists, append number
+                $originalSlug = $slug;
+                $i = 2;
+                while (Mountain::where('slug', $slug)->exists()) {
+                    $slug = $originalSlug . '-' . $i;
+                    $i++;
+                }
+            }
+
             // handle file uploads
             $image1Path = null;
             $image2Path = null;
 
             if ($request->hasFile('image_1')) {
-                // will end up like storage/mountains/abc123.jpg after storage:link
+                // stored in storage/app/public/mountains -> public/storage/mountains
                 $image1Path = $request->file('image_1')->store('mountains', 'public');
             }
 
@@ -42,6 +57,7 @@ class AdminMountainsController extends Controller
 
             Mountain::create([
                 'mountain_name' => $validated['mountain_name'],
+                'slug'          => $slug,
                 'latitude'      => $validated['latitude'],
                 'longitude'     => $validated['longitude'],
                 'description'   => $validated['description'] ?? null,
@@ -62,10 +78,11 @@ class AdminMountainsController extends Controller
 
     public function updateMountain(Request $request)
     {
-        // IMPORTANT: AJAX edit now supports text + optional new images
+        // validate request
         $validated = $request->validate([
             'mountain_id'   => 'required|exists:mountains,id',
             'mountain_name' => 'required|string|max:255|unique:mountains,mountain_name,' . $request->mountain_id,
+            'slug'          => 'nullable|string|max:255|unique:mountains,slug,' . $request->mountain_id,
             'latitude'      => 'required|numeric|between:-90,90',
             'longitude'     => 'required|numeric|between:-180,180',
             'description'   => 'nullable|string',
@@ -75,7 +92,29 @@ class AdminMountainsController extends Controller
 
         $mountain = Mountain::findOrFail($validated['mountain_id']);
 
+        // Handle slug logic:
+        // - if provided, use it
+        // - if not provided or empty, regenerate from new name
+        $incomingSlug = $validated['slug'] ?? null;
+        if (!$incomingSlug || trim($incomingSlug) === '') {
+            $incomingSlug = Str::slug($validated['mountain_name'], '-');
+
+            // ensure uniqueness if name changed to conflict
+            $originalSlug = $incomingSlug;
+            $i = 2;
+            while (
+                Mountain::where('slug', $incomingSlug)
+                        ->where('id', '!=', $mountain->id)
+                        ->exists()
+            ) {
+                $incomingSlug = $originalSlug . '-' . $i;
+                $i++;
+            }
+        }
+
+        // update basic fields
         $mountain->mountain_name = $validated['mountain_name'];
+        $mountain->slug          = $incomingSlug;
         $mountain->latitude      = $validated['latitude'];
         $mountain->longitude     = $validated['longitude'];
         $mountain->description   = $validated['description'] ?? $mountain->description;
@@ -84,7 +123,7 @@ class AdminMountainsController extends Controller
         if ($request->hasFile('image_1')) {
             $path1 = $request->file('image_1')->store('mountains', 'public');
             $mountain->image_1 = $path1;
-            // (Optional) you could delete old file here if you want
+            // You can optionally delete the old file if you want, using Storage::disk('public')->delete(...)
         }
 
         // If user uploaded a new image_2, replace the stored path
@@ -98,6 +137,7 @@ class AdminMountainsController extends Controller
         return response()->json([
             'success'       => true,
             'name'          => $mountain->mountain_name,
+            'slug'          => $mountain->slug,
             'lat'           => $mountain->latitude,
             'lng'           => $mountain->longitude,
             'description'   => $mountain->description,
@@ -115,12 +155,12 @@ class AdminMountainsController extends Controller
         $mountain = Mountain::find($request->mountain_id);
 
         if ($mountain) {
-            // if there is pivot relation users()->detach() keep it
+            // detach relations if you have pivot like $mountain->users()
             if (method_exists($mountain, 'users')) {
                 $mountain->users()->detach();
             }
 
-            // (Optional) also unlink old images from storage if you want to clean up
+            // Optional: delete images from storage here if you want cleanup
             // if ($mountain->image_1) Storage::disk('public')->delete($mountain->image_1);
             // if ($mountain->image_2) Storage::disk('public')->delete($mountain->image_2);
 

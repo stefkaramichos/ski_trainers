@@ -22,8 +22,14 @@
                 <div class="col-9 col-md-8">
                     <div class="fw-bold">
                         <span class="mountain-name" id="mountainName{{$m->id}}">
-                            <a href="{{ route('mountain', $m->id) }}">{{ $m->mountain_name }}</a>
+                            <a href="{{ route('mountain', $m->slug) }}" target="_blank" rel="noopener">
+                                {{ $m->mountain_name }}
+                            </a>
                         </span>
+                    </div>
+
+                    <div class="text-muted small">
+                        Slug: <span id="mountainSlug{{$m->id}}" class="fst-italic">{{ $m->slug }}</span>
                     </div>
 
                     <small class="text-muted d-block">
@@ -75,6 +81,7 @@
                                    onclick="openEdit(
                                        {{ $m->id }},
                                        '{{ addslashes($m->mountain_name) }}',
+                                       '{{ addslashes($m->slug) }}',
                                        '{{ $m->latitude }}',
                                        '{{ $m->longitude }}',
                                        `{{ addslashes($m->description ?? '') }}`,
@@ -113,6 +120,12 @@
                 <div class="mb-3">
                     <label class="form-label">Όνομα</label>
                     <input type="text" name="mountain_name" class="form-control" required maxlength="255">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Slug (URL)</label>
+                    <input type="text" name="slug" class="form-control" maxlength="255" placeholder="π.χ. seli">
+                    <div class="form-text">Θα εμφανίζεται στο URL, π.χ. /mountain/seli. Αφήστε το κενό για αυτόματη δημιουργία.</div>
                 </div>
 
                 <div class="mb-3">
@@ -162,6 +175,12 @@
             </div>
 
             <div class="mb-3">
+                <label class="form-label">Slug (URL)</label>
+                <input type="text" id="editMountainSlug" class="form-control" maxlength="255">
+                <div class="form-text">/mountain/<span id="previewSlugText" class="text-muted"></span></div>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label">Γεωγραφικό Πλάτος (Latitude)</label>
                 <input type="number" id="editMountainLat" class="form-control" step="any" min="-90" max="90" required>
             </div>
@@ -208,10 +227,18 @@
 {{-- JS --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // helper: update the mini URL preview while typing slug
+    $('#editMountainSlug').on('input', function(){
+        $('#previewSlugText').text($(this).val());
+    });
+
     // Open edit modal and fill fields
-    function openEdit(id, currentName, lat, lng, desc, img1Url, img2Url){
+    function openEdit(id, currentName, slug, lat, lng, desc, img1Url, img2Url){
         $('#editMountainId').val(id);
         $('#editMountainName').val(currentName);
+        $('#editMountainSlug').val(slug);
+        $('#previewSlugText').text(slug);
+
         $('#editMountainLat').val(lat);
         $('#editMountainLng').val(lng);
         $('#editMountainDesc').val(desc);
@@ -239,6 +266,7 @@
     function submitEdit(){
         const id   = $('#editMountainId').val();
         const name = $('#editMountainName').val().trim();
+        const slug = $('#editMountainSlug').val().trim();
         const lat  = $('#editMountainLat').val().trim();
         const lng  = $('#editMountainLng').val().trim();
         const desc = $('#editMountainDesc').val().trim();
@@ -262,6 +290,7 @@
         fd.append('_token', '{{ csrf_token() }}');
         fd.append('mountain_id', id);
         fd.append('mountain_name', name);
+        fd.append('slug', slug); // send slug too
         fd.append('latitude', lat);
         fd.append('longitude', lng);
         fd.append('description', desc);
@@ -281,15 +310,25 @@
             contentType: false,
             success: function(res){
                 if(res.success){
-                    // Update name / coords
-                    $('#mountainName'+id).text(res.name);
+                    // Update UI for this mountain row
+
+                    // Name
+                    $('#mountainName'+id).find('a').text(res.name);
+
+                    // If backend returns updated slug in res.slug, update link + slug text
+                    if(res.slug){
+                        $('#mountainName'+id).find('a').attr('href', '{{ url('/mountain') }}/' + res.slug);
+                        $('#mountainSlug'+id).text(res.slug);
+                    }
+
+                    // Lat/Lng
                     $('#mountainLat'+id).text(res.lat);
                     $('#mountainLng'+id).text(res.lng);
 
-                    // Update description
+                    // Desc
                     $('#mountainDesc'+id).text(res.description ?? '');
 
-                    // Update image 1
+                    // Image 1
                     if(res.image_1_url){
                         let img1El = $('#mountainImg1'+id);
                         if(img1El.is('img')){
@@ -301,7 +340,7 @@
                         }
                     }
 
-                    // Update image 2
+                    // Image 2
                     if(res.image_2_url){
                         let img2El = $('#mountainImg2'+id);
                         if(img2El.is('img')){
