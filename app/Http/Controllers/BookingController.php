@@ -65,9 +65,10 @@ class BookingController extends Controller
         try {
             $subject = 'Επιβεβαίωση αίτησης κράτησης';
             $body  = "Γεια σας {$booking->customer_name},\n\n";
-            $body .= "Το αίτημά σας καταχωρήθηκε. Σύντομα ένας εκπαιδευτής θα επικοινωνήσει μαζί σας.\n\n";
+            $body .= "Το αίτημά σας καταχωρήθηκε και είναι σε <b>αναμονή επιβεβαίωσης</b> Σύντομα ένας εκπαιδευτής θα επικοινωνήσει μαζί σας.\n\n";
             $body .= "Στοιχεία κράτησης:\n";
-            $body .= "- Ημερομηνία: {$booking->selected_date}\n";
+            $date = strtotime($booking->selected_date);
+            $body .= "- Ημερομηνία: " . strftime('%A %d/%m/%Y', $date) . "\n";
             $body .= "- Ώρα: {$validated['selected_time']}\n";
             $mountainName = $booking->mountain?->mountain_name ?? '—';
             $body .= "- Χιονοδρομικό: {$mountainName}\n";
@@ -77,10 +78,10 @@ class BookingController extends Controller
                 $body .= "- Σημειώσεις: {$booking->notes}\n";
             }
             $body .= "\n— Σύστημα κρατήσεων\n";
-
+  
             // Basic headers (προσαρμόστε σε δικό σας domain)
-            $headers  = "From: Κρατήσεις <no-reply@yourdomain.tld>\r\n";
-            $headers .= "Reply-To: no-reply@yourdomain.tld\r\n";
+            $headers  = "From: Μαθήματα ski/snowboard <no-reply@ski-lessons.gr>\r\n";
+            $headers .= "Reply-To: booking@ski-lessons.gr\r\n";
             $headers .= "X-Mailer: PHP/" . phpversion();
 
             @mail($booking->customer_email, $subject, $body, $headers);
@@ -242,20 +243,22 @@ class BookingController extends Controller
             $ins = User::find($insId);
             if (!$ins || !$ins->email) continue;
 
-            $subject = "Νέο αίτημα μαθήματος – {$date} {$time}";
+            $sel_date = strtotime($date);
+            $subject = "Νέο αίτημα μαθήματος – {$sel_date} {$time}";
             $body  = "Γεια σας {$ins->name},\n\n";
             $body .= "Υπάρχει νέο αίτημα μαθήματος:\n";
-            $body .= "Ημερομηνία: {$date}\n";
+            $body .= "Ημερομηνία: " . strftime('%A %d/%m/%Y', $sel_date) . "\n";
             $body .= "Ώρα: {$time}\n";
             $body .= "Άθλημα: " . ($discipline === 'sk' ? 'Ski' : 'Snowboard') . "\n";
-            $body .= "Χιονοδρομικό ID: {$mountainId}\n\n";
+            $mountainName = $booking->mountain?->mountain_name ?? '—';
+            $body .= "Χιονοδρομικό: {$mountainName}\n";
             $body .= "Αν μπορείτε να αναλάβετε, πατήστε τον παρακάτω σύνδεσμο (ο πρώτος που θα πατήσει κερδίζει την κράτηση):\n";
             $body .= "{$link}\n\n";
             $body .= "— Σύστημα κρατήσεων\n";
 
             // Basic headers
-            $headers  = "From: Κρατήσεις <no-reply@yourdomain.tld>\r\n";
-            $headers .= "Reply-To: no-reply@yourdomain.tld\r\n";
+            $headers  = "From: Μαθήματα ski/snowboard <no-reply@ski-lessons.gr>\r\n";
+            $headers .= "Reply-To: booking@ski-lessons.gr\r\n";
             $headers .= "X-Mailer: PHP/" . phpversion();
 
             @mail($ins->email, $subject, $body, $headers);
