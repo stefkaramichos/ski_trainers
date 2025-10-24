@@ -1014,3 +1014,86 @@ html {
     .table > :not(caption) > * > * {
         padding: 0px !important;
     }
+
+
+     /* Extra polish for this page only */
+    .mountain-hero {
+        position: relative;
+        border-radius: 1rem;
+        overflow: hidden;
+        min-height: 280px;
+        background-color: #111;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .mountain-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 30% 30%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 70%);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 2rem 1.5rem;
+    }
+
+    .mountain-hero-badge {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #fff;
+        font-size: .8rem;
+        border-radius: .5rem;
+        padding: .4rem .6rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .mountain-card {
+        border-radius: 1rem;
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,.2);
+        border: 0;
+    }
+
+    .mountain-name a{
+        color: #111;
+    }
+
+    .mountain-thumb {
+        width: 100%;
+        aspect-ratio: 4/3;
+        object-fit: cover;
+        border-radius: .75rem;
+        border: 1px solid rgba(0,0,0,.1);
+        background: #f8f9fa;
+    }
+
+    .coords-badge {
+        background: #f8f9fa;
+        border-radius: .5rem;
+        border: 1px solid rgba(0,0,0,.07);
+        padding: .5rem .75rem;
+        font-size: .9rem;
+        line-height: 1.2;
+    }
+
+    .map-frame {
+        border:0;
+        border-radius:.75rem;
+        width: 100%;
+        min-height: 220px;
+        box-shadow: 0 10px 25px -8px rgba(0,0,0,.3);
+    }
+
+    @media (min-width:768px){
+        .mountain-hero{
+            min-height:360px;
+        }
+        .map-frame{
+            min-height:300px;
+        }
+    }

@@ -10,7 +10,10 @@
                     <div class="col-12 col-md-6 col-lg-4">
                         <div class="p-4 rounded-3 h-100 weather-mountain">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <img width="35" class="img-ski-location" src="{{ asset('storage/ski-center.png') }}" alt="ski location"><h4 class="mb-0">{{ $m->mountain_name }}</h4>
+                                <img width="35" class="img-ski-location" src="{{ asset('storage/ski-center.png') }}" alt="ski location">
+                                <h4 class="mb-0">
+                                    <a href="{{ route('mountain', $m->id) }}">{{ $m->mountain_name }}</a>
+                                </h4>
                                 @if($w && isset($w['is_day']))
                                     <div class="dropdown">
                                         <button class="btn btn-sm dropdown-toggle {{ $w['is_day'] ? 'btn-warning text-dark' : 'btn-secondary' }}" type="button"

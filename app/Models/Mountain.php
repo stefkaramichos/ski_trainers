@@ -6,11 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Mountain extends Model
 {
-    protected $fillable = ['mountain_name', 'latitude', 'longitude'];
+  
 
-    protected $casts = [
-        'latitude'  => 'float',
-        'longitude' => 'float',
+    protected $fillable = [
+        'mountain_name',
+        'latitude',
+        'longitude',
+        'image_1',
+        'image_2',
+        'description',
     ];
 
     public function users() {
