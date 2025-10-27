@@ -25,20 +25,54 @@
     @endphp
 
     <li id="saved-item-{{ $item->id }}"
-        class="list-group-item font-s-16 d-flex justify-content-between align-items-center {{ $item->is_reserved ? 'is_reserved' : '' }}">
+        class="list-group-item font-s-16 d-flex justify-content-between align-items-center {{ (!$item->is_reserved && $claimPayload) ? 'is_pending' : '' }} {{ $item->is_reserved ? 'is_reserved' : '' }}">
       <div class="d-flex align-items-center gap-2">
         <span>{{ $timeHi }}</span>
 
         {{-- show paper-plane if a claim was sent and it’s not yet reserved --}}
         @if(!$item->is_reserved && $claimPayload)
+          <!-- The clickable icon -->
           <a
+            href="javascript:void(0)"
             class="ms-1"
             title="Κατοχυρώστε την κράτηση"
-            href="{{ route('booking.claim', ['booking' => $claimPayload['booking'], 'token' => $claimPayload['token']]) }}"
+            data-bs-toggle="modal"
+            data-bs-target="#claimModal{{ $item->id }}"
           >
-            <i class="fa fa-paper-plane text-warning" aria-hidden="true"></i>
+            <i class="fa fa-paper-plane" aria-hidden="true"></i>
           </a>
+
+          <!-- Popup Modal -->
+          <div
+            class="modal fade"
+            id="claimModal{{ $item->id }}"
+            tabindex="-1"
+            aria-labelledby="claimModalLabel{{ $item->id }}"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="claimModalLabel{{ $item->id }}">Κατοχύρωση Κράτησης</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Κλείσιμο"></button>
+                </div>
+                <div class="modal-body text-center">
+                  <p>Είστε βέβαιοι ότι θέλετε να κατοχυρώσετε την κράτηση;</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ακύρωση</button>
+                  <a
+                    href="{{ route('booking.claim', ['booking' => $claimPayload['booking'], 'token' => $claimPayload['token']]) }}"
+                    class="btn btn-primary"
+                  >
+                    Κατοχυρώστε την κράτηση
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         @endif
+
       </div>
 
       <div class="d-flex gap-2">

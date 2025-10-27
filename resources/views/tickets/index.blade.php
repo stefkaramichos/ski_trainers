@@ -19,7 +19,7 @@
                 <tr>
                     <td>{{ $t->id }}</td>
                     <td><a href="{{ route('tickets.show', $t) }}">{{ $t->subject }}</a></td>
-                    <td>{{ $t->instructor->name }}</td>
+                    <td><a href="{{ route('profile.date', $t->instructor->id) }}">{{ $t->instructor->name }}</a></td>
                     <td>{{ ucfirst($t->status) }}</td>
                     <td>{{ ucfirst($t->priority) }}</td>
                     <td>{{ $t->updated_at?->diffForHumans() }}</td>

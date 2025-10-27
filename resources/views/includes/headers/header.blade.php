@@ -9,12 +9,6 @@
             {{ config('app.name', 'Laravel') }}
         </a>
 
-        <!-- Toggle button -->
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-            aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-            <span class="navbar-toggler-icon"></span>
-        </button>
 
         <!-- Navbar content -->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">

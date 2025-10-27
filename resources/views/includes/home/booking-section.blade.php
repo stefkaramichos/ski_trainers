@@ -1,5 +1,14 @@
-
-<section class="booking-section" style="background: url('{{ asset('storage/bg_img_234.jpg') }}') right/cover no-repeat;">
+<style>
+    .booking-section{
+        background: url(storage/bg_img_234.jpg) right / cover no-repeat;
+    }
+    @media (max-width:768px){
+        .booking-section{
+            background: url('{{ asset('storage/bg_img_234.jpg') }}')  no-repeat 63% 40% / cover;
+        }
+    }
+</style>
+<section class="booking-section" >
     <div class="text-container">
         <h5>{{__('auth.proponites_ski')}}</h5>
         <h1>{{__('auth.kleiste_mathima')}}</h1>

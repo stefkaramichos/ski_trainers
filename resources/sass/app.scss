@@ -381,13 +381,15 @@ input{
 }
 
 @media(max-width:767px){
-    .navbar-nav{
-        float: inline-end;
-        flex-direction: unset;
-    }
-    .navbar-nav .dropdown-menu {
-        position: absolute;
-        box-shadow: 0px 0px 10px 0px #474747 !important;
+    .ski-instructor-header{
+        .navbar-nav{
+            float: inline-end;
+            flex-direction: unset;
+        }
+        .navbar-nav .dropdown-menu {
+            position: absolute;
+            box-shadow: 0px 0px 10px 0px #474747 !important;
+        }
     }
 }
 
@@ -400,7 +402,7 @@ input{
   background: #d5d5d5;
 
   @media(max-width:767px){
-    width: 135px; 
+    width: 48.3%; 
   }
 }
 
@@ -1011,10 +1013,7 @@ html {
         padding-right: 0px !important;
     }
 
-    .table > :not(caption) > * > * {
-        padding: 0px !important;
-    }
-
+    
 
      /* Extra polish for this page only */
     .mountain-hero {
@@ -1097,3 +1096,22 @@ html {
             min-height:300px;
         }
     }
+
+  
+
+     @media (max-width:768px){
+       #navbarSupportedContent{
+            display: contents !important;
+        }
+
+        .edit-profile .table > :not(caption) > * > * {
+            padding: 0px !important;
+        }
+        
+    }
+
+   #available-times {
+        .is_pending{
+            background-color: orange ;
+        }
+   }  
