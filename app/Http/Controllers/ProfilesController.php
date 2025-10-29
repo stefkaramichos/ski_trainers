@@ -701,15 +701,86 @@ class ProfilesController extends Controller
             return "N"; // no access
         }
     }
-
+    
     public function profile(User $user, Request $request)
     {
         $mountains = Mountain::all(); 
         $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
 
+        // Access control logic you already had
         if ($user->status === 'A' || (Auth::check() && Auth::user()->super_admin === "Y")) {
             if (Auth::check() && (Auth::user()->id === $user->id || Auth::user()->super_admin === "Y")) {
 
+                // ================================
+                // === STRIPE SUBSCRIPTION INFO ===
+                // ================================
+                $hasActiveSubscription = false;
+                $nextBillingDate = null;      // Carbon|null
+                $stripeSubId = null;
+                $isCancelScheduled = false;   // NEW
+                $cancelAtDate = null;         // NEW
+
+
+               try {
+                    if (!empty($user->stripe_subscription_id) || !empty($user->stripe_customer_id)) {
+
+                        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+
+                        $sub = null;
+
+                        if (!empty($user->stripe_subscription_id)) {
+                            // Direct subscription lookup
+                            $sub = \Stripe\Subscription::retrieve($user->stripe_subscription_id);
+
+                        } elseif (!empty($user->stripe_customer_id)) {
+                            // Fallback: get first active-ish subscription for this customer
+                            $subs = \Stripe\Subscription::all([
+                                'customer' => $user->stripe_customer_id,
+                                'status'   => 'all',
+                                'limit'    => 5,
+                            ]);
+
+                            foreach ($subs->data as $candidate) {
+                                if (in_array($candidate->status, ['trialing','active','past_due','unpaid'])) {
+                                    $sub = $candidate;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($sub) {
+                            // Is Stripe saying it's still running right now?
+                            if (in_array($sub->status, ['trialing','active','past_due','unpaid'])) {
+                                $hasActiveSubscription = true;
+                            }
+
+                            // Did we already schedule cancellation?
+                            // Stripe sets cancel_at_period_end = true after you called our cancel route
+                            if (!empty($sub->cancel_at_period_end) && $sub->cancel_at_period_end === true) {
+                                $isCancelScheduled = true;
+                            }
+
+                            // When does access end / when does billing stop renewing
+                            if (!empty($sub->current_period_end)) {
+                                $nextBillingDate = \Carbon\Carbon::createFromTimestamp($sub->current_period_end);
+                                $cancelAtDate    = \Carbon\Carbon::createFromTimestamp($sub->current_period_end);
+                            }
+
+                            $stripeSubId = $sub->id;
+                        }
+                    }
+                }  catch (\Exception $e) {
+                    // You can log if you want:
+                    // Log::error('Stripe fetch failed: '.$e->getMessage());
+                }
+                // ================================
+                // === END STRIPE SUBSCRIPTION INFO
+                // ================================
+
+
+                // ===================
+                // HANDLE PROFILE POST
+                // ===================
                 if ($request->isMethod('post')) { 
                     $request->validate([
                         'name' => 'required|string|max:255',
@@ -737,11 +808,24 @@ class ProfilesController extends Controller
                         ->with('success', 'Profile updated successfully!');
                 }
 
+                // ================
+                // RENDER THE VIEW
+                // ================
                 return view('profile', [
                     'user' => $user,
                     'mountains' => $mountains,
-                    'userMountains' => $userMountains
+                    'userMountains' => $userMountains,
+
+                    'hasActiveSubscription' => $hasActiveSubscription,
+                    'nextBillingDate'       => $nextBillingDate,
+                    'stripeSubId'           => $stripeSubId,
+
+                    // NEW
+                    'isCancelScheduled'     => $isCancelScheduled,
+                    'cancelAtDate'          => $cancelAtDate,
                 ]);
+
+
             } else {
                 $accessLevel = $this->checkUserAccess($user);
 

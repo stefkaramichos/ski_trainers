@@ -34,5 +34,12 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET'),
+        'key' => env('STRIPE_KEY'),
+        'product_id' => env('STRIPE_PRODUCT_ID'),
+        'price_id'   => env('STRIPE_PRICE_ID'),
+    ],
+
 
 ];

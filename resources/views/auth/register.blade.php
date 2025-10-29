@@ -5,7 +5,7 @@
     <div class="login-card m-2">
         <div class="login-header">{{ __('Εγγραφή ✨') }}</div>
 
-        <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('register.post') }}" enctype="multipart/form-data">
             @csrf
 
             {{-- Name --}}

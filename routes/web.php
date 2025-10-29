@@ -10,7 +10,9 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AdminMountainsController;
 use App\Http\Controllers\AdminBookingsController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\TicketMessageController;
+use App\Http\Controllers\SubscriptionController;
 //testgit 
 
 Route::get('/', function () {
@@ -144,4 +146,31 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/tickets/{ticket}/messages', [TicketMessageController::class, 'store'])
         ->name('tickets.messages.store');
+});
+
+Route::middleware('guest')->group(function () {
+    Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('register', [RegisterController::class, 'register'])->name('register.post');
+
+    // Stripe redirects here
+    Route::get('register/payment/success', [RegisterController::class, 'paymentSuccess'])->name('register.payment.success');
+    Route::get('register/payment/cancel',  [RegisterController::class, 'paymentCancel'])->name('register.payment.cancel');
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Subscription settings page (new)
+    Route::get('/users/{user}/subscription', [SubscriptionController::class, 'show'])
+        ->name('subscription.show');
+
+    // Start new subscription
+    Route::post('/users/{user}/subscription/start', [SubscriptionController::class, 'start'])
+        ->name('subscription.start');
+
+    // After successful Stripe checkout (re-subscribe)
+    Route::get('/users/{user}/subscription/success', [SubscriptionController::class, 'resumeSuccess'])
+        ->name('subscription.resume.success');
+
+    // Cancel subscription
+    Route::post('/users/{user}/subscription/cancel', [SubscriptionController::class, 'cancel'])
+        ->name('subscription.cancel');
 });
