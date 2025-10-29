@@ -154,7 +154,7 @@ class ProfilesController extends Controller
     $mountains = Mountain::all(); 
     $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
 
-    if ($accessLevel == 'A') {
+    if ($accessLevel == 'A' || $accessLevel == 'U') {
 
         // Handle date/time clicks (unchanged) ...
         if ($request->isMethod('post')) {
@@ -691,12 +691,10 @@ class ProfilesController extends Controller
     // Access check
     function checkUserAccess($user)
     {
-        if ($user->status === 'A' || (Auth::check() && Auth::user()->super_admin === "Y")) {
-            if (Auth::check() && (Auth::user()->id === $user->id || Auth::user()->super_admin === "Y")) {
-                return "A"; // owner/admin
-            } else {
-                return "U"; // guest view
-            }
+        if (Auth::check() && Auth::user()->super_admin === "Y") {
+            return "A"; // owner/admin
+        } elseif (Auth::check() && (Auth::user()->id === $user->id)) {
+            return "U"; // guest view
         } else {
             return "N"; // no access
         }
@@ -708,7 +706,6 @@ class ProfilesController extends Controller
         $userMountains = $user->mountains()->pluck('mountains.id')->toArray();
 
         // Access control logic you already had
-        if ($user->status === 'A' || (Auth::check() && Auth::user()->super_admin === "Y")) {
             if (Auth::check() && (Auth::user()->id === $user->id || Auth::user()->super_admin === "Y")) {
 
                 // ================================
@@ -827,20 +824,20 @@ class ProfilesController extends Controller
 
 
             } else {
-                $accessLevel = $this->checkUserAccess($user);
+                // $accessLevel = $this->checkUserAccess($user);
 
-                return view('profile-guest-view', [
-                    'user' => $user,
-                    'mountains' => $mountains,
-                    'userMountains' => $userMountains,
-                    'accessLevel' => $accessLevel
-                ]);
+                // return view('profile-guest-view', [
+                //     'user' => $user,
+                //     'mountains' => $mountains,
+                //     'userMountains' => $userMountains,
+                //     'accessLevel' => $accessLevel
+                // ]);
+
+                 return redirect()
+                    ->route('home')
+                    ->withErrors(['access_denied' => 'You do not have permission to view this profile.']);
             }
-        } else {
-            return redirect()
-                ->route('home')
-                ->withErrors(['access_denied' => 'You do not have permission to view this profile.']);
-        }   
+        
     }
 
     // Legacy session delete (kept for safety if referenced elsewhere)

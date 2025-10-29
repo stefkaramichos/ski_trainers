@@ -18,7 +18,6 @@ class SubscriptionController extends Controller
             abort(403, 'Δεν έχετε δικαίωμα σε αυτή την ενέργεια.');
         }
 
-        // build Stripe info (copied from ProfilesController but enhanced)
         $hasActiveSubscription = false;
         $isCancelScheduled     = false;
         $nextBillingDate       = null;
@@ -31,9 +30,12 @@ class SubscriptionController extends Controller
 
                 $sub = null;
 
+                // try by stored subscription id first
                 if (!empty($user->stripe_subscription_id)) {
                     $sub = \Stripe\Subscription::retrieve($user->stripe_subscription_id);
-                } elseif (!empty($user->stripe_customer_id)) {
+                }
+                // fallback: find any active-ish sub for this customer
+                elseif (!empty($user->stripe_customer_id)) {
                     $subs = \Stripe\Subscription::all([
                         'customer' => $user->stripe_customer_id,
                         'status'   => 'all',
@@ -49,14 +51,17 @@ class SubscriptionController extends Controller
                 }
 
                 if ($sub) {
+                    // still billable now?
                     if (in_array($sub->status, ['trialing','active','past_due','unpaid'])) {
                         $hasActiveSubscription = true;
                     }
 
+                    // scheduled to end at period end?
                     if (!empty($sub->cancel_at_period_end) && $sub->cancel_at_period_end === true) {
                         $isCancelScheduled = true;
                     }
 
+                    // future end date / next billing cycle boundary
                     if (!empty($sub->current_period_end)) {
                         $nextBillingDate = Carbon::createFromTimestamp($sub->current_period_end);
                         $cancelAtDate    = Carbon::createFromTimestamp($sub->current_period_end);
@@ -69,6 +74,18 @@ class SubscriptionController extends Controller
             // \Log::error('Stripe fetch failed: '.$e->getMessage());
         }
 
+        // >>> NEW PART: sync user's status with Stripe reality
+        // Rule:
+        // - hasActiveSubscription true  -> user->status = 'A'
+        // - otherwise                   -> user->status = 'D'
+        $newStatus = $hasActiveSubscription ? 'A' : 'D';
+
+        if ($user->status !== $newStatus) {
+            $user->status = $newStatus;
+            $user->save();
+        }
+        // <<< END NEW PART
+
         return view('profile-subscription', [
             'user'                  => $user,
             'hasActiveSubscription' => $hasActiveSubscription,
@@ -78,7 +95,6 @@ class SubscriptionController extends Controller
             'stripeSubId'           => $stripeSubId,
         ]);
     }
-
 
     // =============
     // START (new or re-subscribe)
@@ -103,26 +119,22 @@ class SubscriptionController extends Controller
             $user->save();
         }
 
-        // create checkout session for subscription
         $checkoutSession = \Stripe\Checkout\Session::create([
             'mode' => 'subscription',
             'customer' => $customerId,
             'line_items' => [[
-                'price' => 'price_1SNcAVBHbjRGq0TF30NXYGCa', // <- your Stripe recurring price
+                'price' => 'price_1SNcAVBHbjRGq0TF30NXYGCa', // your plan price
                 'quantity' => 1,
             ]],
-            // option: re-trial if you want
             'subscription_data' => [
                 'trial_period_days' => 7,
             ],
-
             'success_url' => route('subscription.resume.success', $user->id) . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url'  => route('subscription.show', $user->id),
         ]);
 
         return redirect($checkoutSession->url);
     }
-
 
     // =============
     // SUCCESS AFTER START/RESUBSCRIBE
@@ -167,13 +179,13 @@ class SubscriptionController extends Controller
             $user->stripe_subscription_id = $subscriptionId;
         }
 
+        // subscription is now active => user becomes 'A'
         $user->status = 'A';
         $user->save();
 
         return redirect()->route('subscription.show', $user->id)
             ->with('success', 'Η συνδρομή σας ενεργοποιήθηκε!');
     }
-
 
     // =============
     // CANCEL
@@ -199,6 +211,16 @@ class SubscriptionController extends Controller
                 $subscriptionId,
                 ['cancel_at_period_end' => true]
             );
+
+            // IMPORTANT NOTE:
+            // We are NOT immediately setting status='D' here.
+            // Why?
+            // - User still paid through end of period.
+            // - We want them to keep access until that time.
+            //
+            // What will flip them to 'D'?
+            // - After period end, Stripe marks sub as 'canceled'.
+            // - Next time they load subscription.show(), we won't detect active -> we'll set 'D'.
 
             return back()->with('success', 'Η συνδρομή σας θα ακυρωθεί στο τέλος της τρέχουσας περιόδου.');
         } catch (\Exception $e) {

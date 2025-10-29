@@ -28,7 +28,7 @@
 
                         {{-- CASE 1: No active sub at all -> offer to subscribe --}}
                         @if (!$hasActiveSubscription)
-                            <p class="text-muted mb-3">
+                            <p class=" mb-3">
                                 Δεν έχετε ενεργή συνδρομή.
                             </p>
 
