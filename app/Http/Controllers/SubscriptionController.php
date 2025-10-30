@@ -118,16 +118,17 @@ class SubscriptionController extends Controller
             $user->stripe_customer_id = $customerId;
             $user->save();
         }
+         $priceId = config('services.stripe.price_id');
 
         $checkoutSession = \Stripe\Checkout\Session::create([
             'mode' => 'subscription',
             'customer' => $customerId,
             'line_items' => [[
-                'price' => 'price_1SNcAVBHbjRGq0TF30NXYGCa', // your plan price
+                'price' => $priceId, // your plan price
                 'quantity' => 1,
             ]],
             'subscription_data' => [
-                'trial_period_days' => 7,
+                'trial_period_days' => 1,
             ],
             'success_url' => route('subscription.resume.success', $user->id) . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url'  => route('subscription.show', $user->id),

@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&display=swap" rel="stylesheet">
 
 
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -93,6 +93,11 @@
         @endif
     <!-- Global page loader -->
     @include('includes.page-loader')
+    {{-- Bootstrap 5 JS (needed for popovers, dropdowns, etc) --}}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
     @stack('scripts')
 </body>
 </html>

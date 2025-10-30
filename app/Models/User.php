@@ -62,8 +62,17 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\Ticket::class, 'instructor_id');
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(\App\Models\Booking::class, 'instructor_id');
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->super_admin === 'Y';
+    }
+    public function bookingClaims()
+    {
+        return $this->hasMany(\App\Models\BookingClaim::class, 'instructor_id');
     }
 }

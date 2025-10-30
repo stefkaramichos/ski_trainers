@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 @section('content')
 <div class="main-form">
@@ -21,26 +20,34 @@
         @error('selected_datetimes')
           <div class="alert alert-danger">{{ $message }}</div>
         @enderror
+
+        {{-- ⚠️ Show warning if user status is "D" --}}
+        @if (isset($user) && $user->status === 'D')
+          <div class="alert alert-warning mt-3" role="alert">
+            ⚠ Ο λογαριασμός σας δεν είναι ενεργός αυτή τη στιγμή. 
+            Οι <b>Διαθέσιμες Ημερομηνίες δεν είναι ορατές</b> στους πελάτες. 
+          </div>
+        @endif
       </div>
+
         <div class="row ">
             @include('includes.profile-header')
             @include('includes.admin-edit-menu')
+
             <div class="mb-3 availability">
                 <div class="card">
                     <div class="card-header">
                         Διαθεσιμότητα
                     </div>
 
-                  <div class="card-body edit-profile">
+                    <div class="card-body edit-profile">
                         {{-- === SESSION (ALL PENDING) === --}}
-                        {{-- Session (yellow) list + Save All --}}
-                            <div id="session-wrap">
-                                @include('partials.session-datetimes-list', [
+                        <div id="session-wrap">
+                            @include('partials.session-datetimes-list', [
                                 'sessionDatetimesAll' => $sessionDatetimesAll,
                                 'user' => $user
-                                ])
-                            </div>
-
+                            ])
+                        </div>
 
                         <div class="container mt-5">
                             {{-- Calendar + Time --}}
@@ -52,7 +59,6 @@
                                 {!! $timeSelection !!}
                             </div>
 
-                            
                             {{-- Saved (green) list --}}
                             <div id="db-wrap">
                                 @include('partials.db-datetimes-list', [
@@ -60,19 +66,13 @@
                                   'currentSelectedDate'        => $currentSelectedDate ?? null,
                                   'user'                       => $user,
                                   'bookingsByTime'             => $bookingsByTime ?? [],
-                                  'claimsByTime'               => $claimsByTime  ?? [],   // 👈 pass it
+                                  'claimsByTime'               => $claimsByTime  ?? [],
                                 ])
-
                             </div>
-
                         </div>
                     </div>
-                    
                 </div> 
             </div>
-
-
-          
         </div>
     </div>
 </div>

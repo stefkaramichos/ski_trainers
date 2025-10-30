@@ -3,6 +3,12 @@
 @section('content')
 <div class="main-form">
     <div class="container">
+         @if (isset($user) && $user->status === 'D')
+          <div class="alert alert-warning mt-3" role="alert">
+            ⚠ Ο λογαριασμός σας δεν είναι ενεργός αυτή τη στιγμή. 
+            Οι <b>Διαθέσιμες Ημερομηνίες δεν είναι ορατές</b> στους πελάτες.
+          </div>
+        @endif
         <div class="row">
             @include('includes.profile-header')
             @include('includes.admin-edit-menu')
@@ -26,9 +32,16 @@
                     <div class="card-body edit-profile">
                         @include('includes.success-error-message')
 
+                        {{-- Show warning if subscription is not active --}}
+                        @if (!$hasActiveSubscription)
+                            <div class="alert alert-warning" role="alert">
+                                ⚠ Η συνδρομή σας δεν είναι ενεργή. Παρακαλούμε ενεργοποιήστε την για να συνεχίσετε να χρησιμοποιείτε τις υπηρεσίες.
+                            </div>
+                        @endif
+
                         {{-- CASE 1: No active sub at all -> offer to subscribe --}}
                         @if (!$hasActiveSubscription)
-                            <p class=" mb-3">
+                            <p class="mb-3">
                                 Δεν έχετε ενεργή συνδρομή.
                             </p>
 
@@ -75,7 +88,7 @@
                                 @endif
                             </p>
 
-                            <p class="text-muted mb-0">
+                            <p class="mb-0">
                                 Δεν χρειάζεται άλλη ενέργεια από εσάς.
                             </p>
                         @endif

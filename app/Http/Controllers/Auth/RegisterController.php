@@ -76,6 +76,8 @@ class RegisterController extends Controller
         // 4. Stripe calls
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
+        $priceId = config('services.stripe.price_id');
+
         // 4a. Create (or reuse) the Stripe Customer now
         $customer = \Stripe\Customer::create([
             'email' => $request->input('email'),
@@ -92,12 +94,12 @@ class RegisterController extends Controller
             'mode' => 'subscription',
             'customer' => $customer->id, // 👈 this forces Stripe to link the sub to THIS customer
             'line_items' => [[
-                'price' => 'price_1Qs6WRBHbjRGq0TFPtQHWJYR',
+                'price' => $priceId,
                 'quantity' => 1,
             ]],
-            // 'subscription_data' => [
-            //     'trial_period_days' => 7, // or 0 if no trial
-            // ],
+            'subscription_data' => [
+                'trial_period_days' => 7, // or 0 if no trial
+            ],
 
             'success_url' => route('register.payment.success') . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url'  => route('register.payment.cancel'),

@@ -3,6 +3,13 @@
 @section('content')
 <div class="main-form">
     <div class="container">
+         {{-- ⚠️ Show warning if user status is "D" --}}
+        @if (isset($user) && $user->status === 'D')
+          <div class="alert alert-warning mt-3" role="alert">
+            ⚠ Ο λογαριασμός σας δεν είναι ενεργός αυτή τη στιγμή. 
+            Οι <b>Διαθέσιμες Ημερομηνίες δεν είναι ορατές</b> στους πελάτες.
+          </div>
+        @endif
         <div class="row ">
             @include('includes.profile-header')
             @include('includes.admin-edit-menu')

@@ -1,10 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Mountain;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
-use App\Http\Middleware\CheckSuperAdmin;
 use Auth;
 
 class AdminTrainersController extends Controller
@@ -13,10 +14,28 @@ class AdminTrainersController extends Controller
     {
         if (Auth::check() && Auth::user()->super_admin == 'Y') {
             $mountains = Mountain::all(); 
-            $users = User::all();
+
+            // Φορτώνουμε όλα όσα θα δείξουμε στο view
+            $users = User::with([
+                'mountains:id,mountain_name',
+                'bookings' => function ($q) {
+                    $q->orderBy('selected_date')->orderBy('selected_time');
+                },
+                'tickets:id,instructor_id,status',
+                'bookingClaims' => function ($q) {
+                    // χρειάζομαι και το booking για να πάρω ημερομηνία/ώρα
+                    $q->with(['booking' => function ($b) {
+                        $b->select(
+                            'id',
+                            'selected_date',
+                            'selected_time',
+                            'mountain_id'
+                        )->with('mountain:id,mountain_name');
+                    }]);
+                }
+            ])->get();
 
             if ($request->isMethod('post')) {
-                // Validate input
                 $request->validate([
                     'name' => 'required|string|max:255',
                     'email' => 'required|email|unique:users,email',
@@ -27,63 +46,57 @@ class AdminTrainersController extends Controller
                     'mountains.*' => 'exists:mountains,id',
                 ]);
 
-                // Handle image upload
                 $imagePath = null;
                 if ($request->hasFile('image')) {
                     $imagePath = $request->file('image')->store('profiles', 'public');
                 }
 
-                // Create the user
                 $user = User::create([
                     'name' => $request->input('name'),
                     'email' => $request->input('email'),
                     'password' => Hash::make($request->input('password')),
                     'description' => $request->input('description'),
-                    'image' => $imagePath, // Assuming the users table has an 'image' column
+                    'image' => $imagePath,
                 ]);
 
-                // Attach user to selected mountains
                 if ($request->has('mountains')) {
                     $user->mountains()->attach($request->input('mountains'));
                 }
 
                 return redirect()->back()->with('success', 'Trainer added successfully!');
             }
-        }else{
-            return redirect()->route('home');
+
+            return view('admin.admin_trainers', [
+                'users' => $users,
+                'mountains' => $mountains
+            ]);
         }
-        return view('admin.admin_trainers', ['users' => $users, 'mountains' => $mountains]);
+
+        return redirect()->route('home');
     }
 
     public function updateStatus(Request $request)
     {
-        // Get the user and status from the request
         $user = User::find($request->user_id);
         if ($user) {
-            // Update the user's status
             $user->status = $request->status;
             $user->save();
 
-            // Return a success response
             return response()->json(['success' => true, 'status' => $request->status]);
         }
 
         return response()->json(['success' => false], 400);
     }
+
     public function deleteUser(Request $request)
     {
-        // Find the user by ID
         $user = User::find($request->user_id);
 
         if ($user) {
-            // Delete the user
             $user->delete();
-
-            // Return success response
             return response()->json(['success' => true]);
         }
 
         return response()->json(['success' => false], 400);
     }
-
 }
