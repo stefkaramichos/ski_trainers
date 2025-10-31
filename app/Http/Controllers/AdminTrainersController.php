@@ -17,23 +17,43 @@ class AdminTrainersController extends Controller
 
             // Φορτώνουμε όλα όσα θα δείξουμε στο view
             $users = User::with([
+                // mountains
                 'mountains:id,mountain_name',
+
+                // bookings του instructor (για σύνολο + επόμενη κράτηση)
                 'bookings' => function ($q) {
-                    $q->orderBy('selected_date')->orderBy('selected_time');
+                    $q->select(
+                        'id',
+                        'instructor_id',
+                        'mountain_id',
+                        'customer_name',
+                        'selected_date',
+                        'selected_time',
+                        'status'
+                    )
+                    ->orderBy('selected_date')
+                    ->orderBy('selected_time');
                 },
+
+                // tickets
                 'tickets:id,instructor_id,status',
+
+                // booking claims
                 'bookingClaims' => function ($q) {
-                    // χρειάζομαι και το booking για να πάρω ημερομηνία/ώρα
-                    $q->with(['booking' => function ($b) {
-                        $b->select(
-                            'id',
-                            'selected_date',
-                            'selected_time',
-                            'mountain_id'
-                        )->with('mountain:id,mountain_name');
-                    }]);
-                }
+                    $q->with([
+                        'booking' => function ($b) {
+                            $b->select(
+                                'id',
+                                'instructor_id',   // 👈 χρειαζόμαστε αυτό για να ελέγξουμε αν είναι null
+                                'selected_date',
+                                'selected_time',
+                                'mountain_id'
+                            )->with('mountain:id,mountain_name');
+                        }
+                    ]);
+                },
             ])->get();
+
 
             if ($request->isMethod('post')) {
                 $request->validate([

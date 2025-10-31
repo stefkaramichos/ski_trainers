@@ -33,6 +33,7 @@
                         if ($claim->claimed_at !== null) return false;
                         if ($claim->invalidated_at !== null) return false;
                         if (!$claim->booking) return false;
+                        if ($claim->booking->instructor_id !== null) return false;
                         return $claim->booking->selected_date >= $today;
                     });
 

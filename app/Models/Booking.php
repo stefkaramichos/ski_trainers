@@ -1,11 +1,14 @@
 <?php
-// app/Models/Booking.php
+
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'instructor_id',
         'mountain_id',
@@ -20,6 +23,15 @@ class Booking extends Model
         'status',
     ];
 
-    public function instructor() { return $this->belongsTo(User::class, 'instructor_id'); }
-    public function mountain()   { return $this->belongsTo(Mountain::class); }
+    public function instructor()
+    {
+        return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    public function mountain()
+    {
+        return $this->belongsTo(Mountain::class);
+    }
+
+ 
 }

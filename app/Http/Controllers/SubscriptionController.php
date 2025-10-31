@@ -127,9 +127,9 @@ class SubscriptionController extends Controller
                 'price' => $priceId, // your plan price
                 'quantity' => 1,
             ]],
-            'subscription_data' => [
-                'trial_period_days' => 1,
-            ],
+            // 'subscription_data' => [
+            //     'trial_period_days' => 1,
+            // ],
             'success_url' => route('subscription.resume.success', $user->id) . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url'  => route('subscription.show', $user->id),
         ]);

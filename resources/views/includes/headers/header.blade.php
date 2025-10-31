@@ -46,30 +46,20 @@
                              aria-labelledby="navbarDropdown">
                             <a 
                                 href="{{  route('profile', Auth::user()->id) }}" 
-                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}"
-                               
-                              
-                            >
+                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}">
                                 <i class="bi bi-person-lines-fill me-2"></i>{{ __('auth.my_profile') }}
                             </a>
 
                             <a 
                                 href="{{ route('profile.date', Auth::user()->id) }}" 
-                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}"
-                         
-                            
-                            >
+                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}" >
                                 <img width="12" src="{{ asset('storage/calendar.png') }}" alt="ski icon" class="me-2">
                                 Το Πρόγραμμά μου
                             </a>
 
                             <a 
                                 href="{{  route('tickets.index') }}" 
-                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}"
-                                
-                              
-                              
-                            >
+                                class="dropdown-item py-2 d-flex align-items-center {{ Auth::user()->status === 'D' ? 'text-muted disabled-link' : '' }}" >
                                 <i class="bi bi-envelope-fill"></i>
                                 &nbsp;&nbsp;Επικοινωνία
                             </a>
